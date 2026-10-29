@@ -12,9 +12,11 @@ def candidate_a(transactions):
         transaction_id = transaction.get("transaction_id")
         amount = transaction.get("amount")
 
+        # Skip missing values, but allow zero amounts.
         if transaction_id is None or amount is None:
             continue
 
+        # Skip duplicate transaction IDs.
         if transaction_id in seen_ids:
             continue
 
@@ -47,6 +49,7 @@ def candidate_c(transactions):
         transaction_id = transaction.get("transaction_id")
         amount = transaction.get("amount")
 
+        # BUG: Zero is treated as a missing value.
         if transaction_id is None or not amount:
             continue
 
@@ -59,7 +62,7 @@ def candidate_c(transactions):
     return cleaned
 
 
-# Same test cases for every candidate
+# Shared test cases for every candidate
 test_cases = [
     {
         "name": "Remove duplicate transactions",
@@ -110,31 +113,52 @@ def evaluate_candidate(name, function):
     results = []
 
     for test in test_cases:
+        error = None
+
         try:
             actual = function(test["input"])
-            success = actual == test["expected"]
-            error = None
+            expected = test["expected"]
+            success = actual == expected
+
         except Exception as exc:
+            actual = None
+            expected = test["expected"]
             success = False
             error = str(exc)
 
         if success:
             passed += 1
+            failure_reason = None
+
+        else:
+            if error:
+                failure_reason = (
+                    f"Candidate raised an exception: {error}"
+                )
+            else:
+                failure_reason = (
+                    f"Expected {expected!r}, but got {actual!r}"
+                )
 
         results.append({
             "test": test["name"],
             "status": "PASS" if success else "FAIL",
-            "error": error,
+            "expected": expected,
+            "actual": actual,
+            "failure_reason": failure_reason,
         })
 
     total = len(test_cases)
+    failed = total - passed
+
+    score = round(passed / total * 100, 2) if total else 0
 
     return {
         "candidate": name,
         "passed": passed,
-        "failed": total - passed,
+        "failed": failed,
         "total": total,
-        "score": round(passed / total * 100, 2),
+        "score": score,
         "results": results,
     }
 
@@ -152,14 +176,19 @@ if __name__ == "__main__":
         report = evaluate_candidate(name, function)
         reports.append(report)
 
-        print(f"{name}: {report['score']}%")
+        print(
+            f"{name}: {report['score']}% "
+            f"({report['passed']}/{report['total']} tests passed)"
+        )
 
+    # Create the reports folder if it does not exist.
     output_dir = Path("reports")
-    output_dir.mkdir(exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Save the comparison report.
     output_file = output_dir / "candidate_comparison.json"
 
     with output_file.open("w", encoding="utf-8") as file:
         json.dump(reports, file, indent=4)
 
-    print(f"Report saved to: {output_file}")
+    print(f"\nReport saved to: {output_file}")
