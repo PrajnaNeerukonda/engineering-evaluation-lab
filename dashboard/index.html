@@ -1,1 +1,355 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engineering Evaluation Lab</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #697386;
+      --border: #e2e8f0;
+      --blue: #315efb;
+      --green: #15803d;
+      --red: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 28px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .subtitle, .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status {
+      background: #dcfce7;
+      color: #166534;
+      padding: 9px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 2px 5px #17203308;
+      min-width: 0;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric-value {
+      font-size: 30px;
+      font-weight: bold;
+      margin: 12px 0 6px;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: #f8fafc;
+    }
+
+    .rank {
+      display: inline-block;
+      background: #e8edff;
+      color: #2448c7;
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .bar-track {
+      height: 9px;
+      min-width: 100px;
+      background: #e9edf5;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      background: var(--blue);
+      border-radius: 20px;
+    }
+
+    .badge {
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .pass {
+      background: #dcfce7;
+      color: var(--green);
+    }
+
+    .fail {
+      background: #fee2e2;
+      color: var(--red);
+    }
+
+    .test-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .test-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 18px;
+    }
+
+    @media (max-width: 800px) {
+      body {
+        padding: 16px;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 23px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header>
+      <div>
+        <h1>Engineering Evaluation Lab</h1>
+        <div class="subtitle">
+          Automated candidate benchmarking and test analysis
+        </div>
+      </div>
+      <div class="status">● Demo report</div>
+    </header>
+
+    <section class="metrics">
+      <article class="card">
+        <div class="metric-label">Candidates evaluated</div>
+        <div class="metric-value" id="candidateCount">3</div>
+        <div class="muted">Implementations compared</div>
+      </article>
+
+      <article class="card">
+        <div class="metric-label">Test cases</div>
+        <div class="metric-value" id="testCount">28</div>
+        <div class="muted">Original and generated cases</div>
+      </article>
+
+      <article class="card">
+        <div class="metric-label">Highest score</div>
+        <div class="metric-value" id="highestScore">100%</div>
+        <div class="muted" id="topCandidate">Candidate A</div>
+      </article>
+
+      <article class="card">
+        <div class="metric-label">Evaluation status</div>
+        <div class="metric-value" id="evaluationStatus"
+             style="font-size:24px">Complete</div>
+        <div class="muted">Demo data displayed</div>
+      </article>
+    </section>
+
+    <section class="card section">
+      <h2>Candidate leaderboard</h2>
+      <p class="muted">
+        Candidates ranked by their test pass rate.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Candidate</th>
+              <th>Passed</th>
+              <th>Failed</th>
+              <th>Score</th>
+              <th>Performance</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card section">
+      <h2>Test-level analysis</h2>
+      <p class="muted">
+        Example results from the transaction-cleaning benchmark.
+      </p>
+      <div id="testResults" class="test-list"></div>
+    </section>
+
+    <div class="footer">
+      Engineering Evaluation Lab · Python · pytest · GitHub Actions
+    </div>
+  </main>
+
+  <script>
+    // Demo data based on our earlier benchmark results.
+    // We will replace this with actual JSON report data next.
+
+    const candidates = [
+      {
+        name: "Candidate A",
+        passed: 5,
+        failed: 0,
+        total: 5,
+        score: 100
+      },
+      {
+        name: "Candidate C",
+        passed: 4,
+        failed: 1,
+        total: 5,
+        score: 80
+      },
+      {
+        name: "Candidate B",
+        passed: 3,
+        failed: 2,
+        total: 5,
+        score: 60
+      }
+    ];
+
+    const testResults = [
+      { name: "Normal transaction", status: "PASS" },
+      { name: "Remove duplicate transactions", status: "PASS" },
+      { name: "Keep zero amount", status: "PASS" },
+      { name: "Remove missing values", status: "PASS" },
+      { name: "Keep first duplicate", status: "PASS" },
+      { name: "Handle empty input", status: "PASS" }
+    ];
+
+    function renderLeaderboard() {
+      const body = document.getElementById("leaderboard");
+
+      body.innerHTML = candidates.map((candidate, index) => `
+        <tr>
+          <td><span class="rank">#${index + 1}</span></td>
+          <td><strong>${candidate.name}</strong></td>
+          <td>${candidate.passed}/${candidate.total}</td>
+          <td>${candidate.failed}</td>
+          <td><strong>${candidate.score.toFixed(1)}%</strong></td>
+          <td>
+            <div class="bar-track">
+              <div class="bar" style="width:${candidate.score}%"></div>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function renderTestResults() {
+      const container = document.getElementById("testResults");
+
+      container.innerHTML = testResults.map(test => `
+        <div class="test-item">
+          <span>${test.name}</span>
+          <span class="badge ${test.status === "PASS" ? "pass" : "fail"}">
+            ${test.status}
+          </span>
+        </div>
+      `).join("");
+    }
+
+    renderLeaderboard();
+    renderTestResults();
+  </script>
+</body>
+</html>
