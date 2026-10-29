@@ -272,7 +272,29 @@
       </table>
     </div>
   </section>
-
+<section class="card section">
+  <h2>Repeated Performance Benchmark</h2>
+  <p class="muted">
+    10,000 synthetic input records, 3 warm-up runs and 25 measured runs
+    per candidate. Correctness is evaluated independently of speed.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Candidate</th>
+          <th>Correct</th>
+          <th>Median (ms)</th>
+          <th>P95 (ms)</th>
+          <th>Throughput (records/sec)</th>
+        </tr>
+      </thead>
+      <tbody id="performanceBody">
+        <tr><td colspan="5">Loading benchmark...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
   <section class="card section">
     <h2>Test-by-test comparison</h2>
     <p class="muted">
