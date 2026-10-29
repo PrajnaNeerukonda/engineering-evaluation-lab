@@ -12,10 +12,8 @@
             --text: #1f2937;
             --muted: #6b7280;
             --border: #e5e7eb;
-            --primary: #4f46e5;
             --green: #15803d;
             --red: #b91c1c;
-            --orange: #c2410c;
         }
 
         * {
@@ -108,6 +106,7 @@
             border-bottom: 1px solid var(--border);
             text-align: left;
             font-size: 14px;
+            vertical-align: top;
         }
 
         th {
@@ -136,11 +135,6 @@
         .fail {
             background: #fee2e2;
             color: var(--red);
-        }
-
-        .warning {
-            background: #ffedd5;
-            color: var(--orange);
         }
 
         .muted {
@@ -210,14 +204,14 @@
         <div class="table-wrapper">
             <table>
                 <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Candidate</th>
-                    <th>Passed</th>
-                    <th>Total Tests</th>
-                    <th>Accuracy</th>
-                    <th>Status</th>
-                </tr>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Candidate</th>
+                        <th>Passed</th>
+                        <th>Total Tests</th>
+                        <th>Accuracy</th>
+                        <th>Status</th>
+                    </tr>
                 </thead>
                 <tbody id="leaderboard-body"></tbody>
             </table>
@@ -225,23 +219,23 @@
 
         <h2>Performance Benchmark</h2>
         <p class="muted">
-            Performance results are measured separately from correctness
-            tests. Lower execution time is better; throughput is higher when
-            more records are processed per second.
+            Performance is measured separately from correctness.
+            Lower execution times are better, while higher throughput
+            means more records processed per second.
         </p>
 
         <div class="table-wrapper">
             <table>
                 <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Candidate</th>
-                    <th>Correct</th>
-                    <th>Median (ms)</th>
-                    <th>P95 (ms)</th>
-                    <th>Mean (ms)</th>
-                    <th>Throughput (records/sec)</th>
-                </tr>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Candidate</th>
+                        <th>Correct</th>
+                        <th>Median (ms)</th>
+                        <th>P95 (ms)</th>
+                        <th>Mean (ms)</th>
+                        <th>Throughput (records/sec)</th>
+                    </tr>
                 </thead>
                 <tbody id="performance-body"></tbody>
             </table>
@@ -254,14 +248,14 @@
         <div class="table-wrapper">
             <table>
                 <thead>
-                <tr>
-                    <th>Candidate</th>
-                    <th>Passed</th>
-                    <th>Failed</th>
-                    <th>Accuracy</th>
-                    <th>Total Execution Time (ms)</th>
-                    <th>Average Time (ms)</th>
-                </tr>
+                    <tr>
+                        <th>Candidate</th>
+                        <th>Passed</th>
+                        <th>Failed</th>
+                        <th>Accuracy</th>
+                        <th>Total Execution Time (ms)</th>
+                        <th>Average Time (ms)</th>
+                    </tr>
                 </thead>
                 <tbody id="comparison-body"></tbody>
             </table>
@@ -271,12 +265,13 @@
         <div class="table-wrapper">
             <table>
                 <thead>
-                <tr>
-                    <th>Candidate</th>
-                    <th>Test Case</th>
-                    <th>Expected Output</th>
-                    <th>Actual Output</th>
-                </tr>
+                    <tr>
+                        <th>Candidate</th>
+                        <th>Test Case</th>
+                        <th>Expected Output</th>
+                        <th>Actual Output</th>
+                        <th>Failure Reason</th>
+                    </tr>
                 </thead>
                 <tbody id="failures-body"></tbody>
             </table>
@@ -286,12 +281,12 @@
         <div class="table-wrapper">
             <table>
                 <thead>
-                <tr>
-                    <th>Test Case</th>
-                    <th>Candidate</th>
-                    <th>Result</th>
-                    <th>Execution Time (ms)</th>
-                </tr>
+                    <tr>
+                        <th>Test Case</th>
+                        <th>Candidate</th>
+                        <th>Result</th>
+                        <th>Execution Time (ms)</th>
+                    </tr>
                 </thead>
                 <tbody id="results-body"></tbody>
             </table>
@@ -300,8 +295,7 @@
     </div>
 
     <footer>
-        AI Engineering Evaluation Lab · Automatically generated evaluation
-        dashboard
+        AI Engineering Evaluation Lab · Automatically generated evaluation dashboard
     </footer>
 
 </div>
@@ -332,8 +326,7 @@
         }
 
         return number.toLocaleString("en-US", {
-            maximumFractionDigits: decimals,
-            minimumFractionDigits: 0
+            maximumFractionDigits: decimals
         });
     }
 
@@ -357,8 +350,8 @@
 
     function getCandidateName(candidate) {
         return (
-            candidate.candidate_name ??
             candidate.candidate ??
+            candidate.candidate_name ??
             candidate.name ??
             candidate.id ??
             "Unknown candidate"
@@ -385,28 +378,24 @@
 
     function getTotal(candidate) {
         return Number(
-            candidate.total_tests ??
             candidate.total ??
+            candidate.total_tests ??
             (getPassed(candidate) + getFailed(candidate))
         );
     }
 
     function getAccuracy(candidate) {
-        const existing =
-            candidate.accuracy ??
-            candidate.accuracy_percentage ??
-            candidate.pass_rate;
+        const score = candidate.score ?? candidate.accuracy;
 
-        if (existing !== undefined && existing !== null) {
-            const value = Number(existing);
-
-            // Support either 0–1 ratios or 0–100 percentages.
-            return value <= 1 ? value * 100 : value;
+        if (score !== undefined && score !== null) {
+            return Number(score);
         }
 
         const total = getTotal(candidate);
 
-        return total > 0 ? (getPassed(candidate) / total) * 100 : 0;
+        return total > 0
+            ? (getPassed(candidate) / total) * 100
+            : 0;
     }
 
     function makeStatus(isPassing) {
@@ -426,41 +415,31 @@
     }
 
     function renderOverview(candidates, testCases) {
-        const totalTests = testCases.length;
-
         const bestCandidate = [...candidates].sort(
             (a, b) => getAccuracy(b) - getAccuracy(a)
         )[0];
 
-        const bestName = bestCandidate
-            ? getCandidateName(bestCandidate)
-            : "N/A";
-
-        const bestAccuracy = bestCandidate
-            ? `${formatNumber(getAccuracy(bestCandidate))}%`
-            : "N/A";
-
-        const candidateCount = candidates.length;
-
         $("overview").innerHTML = [
             makeMetric(
                 "Candidates Evaluated",
-                candidateCount,
+                candidates.length,
                 "Solutions included in the evaluation"
             ),
             makeMetric(
                 "Generated Test Cases",
-                totalTests,
+                testCases.length,
                 "Scenarios used for correctness testing"
             ),
             makeMetric(
                 "Top Candidate",
-                bestName,
+                bestCandidate ? getCandidateName(bestCandidate) : "N/A",
                 "Highest correctness score"
             ),
             makeMetric(
                 "Top Accuracy",
-                bestAccuracy,
+                bestCandidate
+                    ? `${formatNumber(getAccuracy(bestCandidate))}%`
+                    : "N/A",
                 "Best candidate pass rate"
             )
         ].join("");
@@ -471,22 +450,22 @@
             (a, b) => getAccuracy(b) - getAccuracy(a)
         );
 
-        $("leaderboard-body").innerHTML = sorted.map((candidate, index) => {
-            const passed = getPassed(candidate);
-            const total = getTotal(candidate);
-            const accuracy = getAccuracy(candidate);
+        $("leaderboard-body").innerHTML = sorted.map(
+            (candidate, index) => {
+                const accuracy = getAccuracy(candidate);
 
-            return `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${escapeHTML(getCandidateName(candidate))}</td>
-                    <td>${passed}</td>
-                    <td>${total}</td>
-                    <td>${formatNumber(accuracy)}%</td>
-                    <td>${makeStatus(accuracy >= 100)}</td>
-                </tr>
-            `;
-        }).join("");
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${escapeHTML(getCandidateName(candidate))}</td>
+                        <td>${getPassed(candidate)}</td>
+                        <td>${getTotal(candidate)}</td>
+                        <td>${formatNumber(accuracy)}%</td>
+                        <td>${makeStatus(accuracy === 100)}</td>
+                    </tr>
+                `;
+            }
+        ).join("");
 
         if (!sorted.length) {
             $("leaderboard-body").innerHTML = `
@@ -507,44 +486,25 @@
     }
 
     function getMedian(candidate) {
-        return Number(
-            candidate.median_execution_time_ms ??
-            candidate.median_ms ??
-            candidate.median ??
-            candidate.median_time_ms ??
-            NaN
-        );
+        return Number(candidate.median_execution_time_ms ?? NaN);
+    }
+
+    function getP95(candidate) {
+        return Number(candidate.p95_execution_time_ms ?? NaN);
     }
 
     function getMean(candidate) {
-    return Number(
-        candidate.average_execution_time_ms ?? NaN
-    );
-}
-
-    function getMean(candidate) {
-        return Number(
-            candidate.mean_execution_time_ms ??
-            candidate.mean_ms ??
-            candidate.mean ??
-            candidate.average_execution_time_ms ??
-            NaN
-        );
+        return Number(candidate.average_execution_time_ms ?? NaN);
     }
 
     function getThroughput(candidate) {
-    return Number(
-        candidate.throughput_input_records_per_second ?? NaN
-    );
-}
+        return Number(
+            candidate.throughput_input_records_per_second ?? NaN
+        );
+    }
+
     function isCorrect(candidate) {
-        return (
-            candidate.correctness ??
-            candidate.correct ??
-            candidate.is_correct ??
-            candidate.passed_correctness ??
-            false
-        ) === true;
+        return candidate.correct === true;
     }
 
     function renderPerformance(report) {
@@ -559,52 +519,34 @@
         });
 
         $("performance-body").innerHTML = sorted.map(
-            (candidate, index) => {
-                const correct = isCorrect(candidate);
-                const median = getMedian(candidate);
-                const p95 = getP95(candidate);
-                const mean = getMean(candidate);
-                const throughput = getThroughput(candidate);
-
-                return `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${escapeHTML(getCandidateName(candidate))}</td>
-                        <td>${makeStatus(correct)}</td>
-                        <td>${formatTime(median)}</td>
-                        <td>${formatTime(p95)}</td>
-                        <td>${formatTime(mean)}</td>
-                        <td>${formatNumber(throughput, 2)}</td>
-                    </tr>
-                `;
-            }
+            (candidate, index) => `
+                <tr>
+                    <td>${candidate.performance_rank ?? index + 1}</td>
+                    <td>${escapeHTML(getCandidateName(candidate))}</td>
+                    <td>${makeStatus(isCorrect(candidate))}</td>
+                    <td>${formatTime(getMedian(candidate))}</td>
+                    <td>${formatTime(getP95(candidate))}</td>
+                    <td>${formatTime(getMean(candidate))}</td>
+                    <td>${formatNumber(getThroughput(candidate))}</td>
+                </tr>
+            `
         ).join("");
 
         if (!sorted.length) {
             $("performance-body").innerHTML = `
-                <tr>
-                    <td colspan="7" class="empty-state">
-                        No performance results found. Check the structure
-                        of performance_benchmark.json.
-                    </td>
-                </tr>
+                <tr><td colspan="7" class="empty-state">
+                    No performance results found.
+                </td></tr>
             `;
         }
     }
 
     function renderTestSummary(testCases) {
-        const names = testCases.map((testCase) => {
-            if (typeof testCase === "string") {
-                return testCase;
-            }
-
-            return (
-                testCase.name ??
-                testCase.test_name ??
-                testCase.id ??
-                "Unnamed test"
-            );
-        });
+        const names = testCases.map((testCase) =>
+            typeof testCase === "string"
+                ? testCase
+                : testCase.name ?? "Unnamed test"
+        );
 
         $("test-summary").innerHTML = [
             makeMetric(
@@ -615,32 +557,24 @@
             makeMetric(
                 "Unique Scenario Names",
                 new Set(names).size,
-                "Distinct names in the test report"
+                "Distinct scenario names"
             )
         ].join("");
     }
 
     function renderComparison(candidates) {
-        $("comparison-body").innerHTML = candidates.map((candidate) => {
-            const totalTime = Number(
-                candidate.total_execution_time_ms ?? NaN
-            );
-
-            const averageTime = Number(
-                candidate.average_execution_time_ms ?? NaN
-            );
-
-            return `
+        $("comparison-body").innerHTML = candidates.map(
+            (candidate) => `
                 <tr>
                     <td>${escapeHTML(getCandidateName(candidate))}</td>
                     <td>${getPassed(candidate)}</td>
                     <td>${getFailed(candidate)}</td>
                     <td>${formatNumber(getAccuracy(candidate))}%</td>
-                    <td>${formatTime(totalTime)}</td>
-                    <td>${formatTime(averageTime)}</td>
+                    <td>${formatTime(candidate.total_execution_time_ms)}</td>
+                    <td>${formatTime(candidate.average_execution_time_ms)}</td>
                 </tr>
-            `;
-        }).join("");
+            `
+        ).join("");
 
         if (!candidates.length) {
             $("comparison-body").innerHTML = `
@@ -651,103 +585,53 @@
         }
     }
 
-    function renderFailures(candidates, testCases) {
+    function renderFailures(candidates) {
         const failures = [];
 
         candidates.forEach((candidate) => {
-            const results = getArray(candidate, [
-                "results",
-                "test_results",
-                "cases"
-            ]);
-
-            results.forEach((result) => {
-                const passed =
-                    result.passed ??
-                    result.success ??
-                    result.is_passed;
-
-                if (passed === false) {
-                    failures.push({
-                        candidate: getCandidateName(candidate),
-                        test: result.test_name ?? result.name ?? result.test_case ?? "Unnamed test",
-                        expected: result.expected ?? result.expected_output ?? "N/A",
-                        actual: result.actual ?? result.actual_output ?? "N/A"
-                    });
+            (candidate.results ?? []).forEach((result) => {
+                if (result.status === "FAIL") {
+                    failures.push(`
+                        <tr>
+                            <td>${escapeHTML(getCandidateName(candidate))}</td>
+                            <td>${escapeHTML(result.test)}</td>
+                            <td>${escapeHTML(JSON.stringify(result.expected))}</td>
+                            <td>${escapeHTML(JSON.stringify(result.actual))}</td>
+                            <td>${escapeHTML(result.failure_reason ?? "N/A")}</td>
+                        </tr>
+                    `);
                 }
             });
         });
 
-        $("failures-body").innerHTML = failures.map((failure) => `
-            <tr>
-                <td>${escapeHTML(failure.candidate)}</td>
-                <td>${escapeHTML(failure.test)}</td>
-                <td>${escapeHTML(JSON.stringify(failure.expected))}</td>
-                <td>${escapeHTML(JSON.stringify(failure.actual))}</td>
-            </tr>
-        `).join("");
-
-        if (!failures.length) {
-            $("failures-body").innerHTML = `
-                <tr>
-                    <td colspan="4" class="empty-state">
-                        No failure details found in the candidate report.
-                    </td>
-                </tr>
-            `;
-        }
+        $("failures-body").innerHTML = failures.length
+            ? failures.join("")
+            : `<tr><td colspan="5" class="empty-state">
+                No failures found.
+               </td></tr>`;
     }
 
     function renderIndividualResults(candidates) {
         const rows = [];
 
         candidates.forEach((candidate) => {
-            const results = getArray(candidate, [
-                "results",
-                "test_results",
-                "cases"
-            ]);
-
-            results.forEach((result) => {
-                const passed =
-                    result.passed ??
-                    result.success ??
-                    result.is_passed ??
-                    false;
-
-                const executionTime =
-                    result.execution_time_ms ??
-                    result.elapsed_ms ??
-                    NaN;
-
+            (candidate.results ?? []).forEach((result) => {
                 rows.push(`
                     <tr>
-                        <td>${escapeHTML(
-                            result.test_name ??
-                            result.name ??
-                            result.test_case ??
-                            "Unnamed test"
-                        )}</td>
+                        <td>${escapeHTML(result.test ?? "Unnamed test")}</td>
                         <td>${escapeHTML(getCandidateName(candidate))}</td>
-                        <td>${makeStatus(passed === true)}</td>
-                        <td>${formatTime(Number(executionTime))}</td>
+                        <td>${makeStatus(result.status === "PASS")}</td>
+                        <td>${formatTime(result.execution_time_ms)}</td>
                     </tr>
                 `);
             });
         });
 
-        $("results-body").innerHTML = rows.join("");
-
-        if (!rows.length) {
-            $("results-body").innerHTML = `
-                <tr>
-                    <td colspan="4" class="empty-state">
-                        No individual test results found in the candidate
-                        comparison report.
-                    </td>
-                </tr>
-            `;
-        }
+        $("results-body").innerHTML = rows.length
+            ? rows.join("")
+            : `<tr><td colspan="4" class="empty-state">
+                No individual test results found.
+               </td></tr>`;
     }
 
     async function fetchJSON(url) {
@@ -768,7 +652,6 @@
         const status = $("dashboard-status");
 
         try {
-            // Fetch all three reports using their correct variable names.
             const [
                 comparison,
                 generatedCases,
@@ -793,22 +676,23 @@
 
             if (!candidates.length) {
                 throw new Error(
-                    "The candidate comparison report contains no candidates, " +
-                    "or its JSON structure is different from the expected format."
+                    "The candidate comparison report contains no candidates. " +
+                    "Check the JSON report structure."
                 );
             }
 
-            // Render dashboard sections.
             renderOverview(candidates, testCases);
             renderLeaderboard(candidates);
             renderPerformance(performance);
             renderTestSummary(testCases);
             renderComparison(candidates);
-            renderFailures(candidates, testCases);
+            renderFailures(candidates);
             renderIndividualResults(candidates);
 
-            status.textContent = "All evaluation reports loaded successfully.";
+            status.textContent =
+                "All evaluation reports loaded successfully.";
             status.className = "status pass";
+
             $("dashboard-content").hidden = false;
 
         } catch (error) {
@@ -819,7 +703,7 @@
                 "Unable to load the dashboard: " +
                 error.message +
                 " Check that the JSON reports exist in the data folder " +
-                "and that the workflow copied them into the deployed site.";
+                "and that GitHub Actions copied them into the deployed site.";
         }
     }
 
