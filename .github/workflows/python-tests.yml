@@ -34,7 +34,6 @@ jobs:
       - name: Run evaluation engine
         run: python evaluation/evaluate.py
 
-      
       - name: Upload evaluation report
         if: always()
         uses: actions/upload-artifact@v4
