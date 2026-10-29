@@ -3,6 +3,7 @@ import copy
 import json
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -75,8 +76,7 @@ CANDIDATES = {
 
 
 def load_test_cases():
-    """Load the generated test cases, creating them if necessary."""
-
+    """Load generated test cases, creating them if necessary."""
     if not TEST_CASES_FILE.exists():
         generator = ROOT_DIR / "evaluation" / "test_generator.py"
 
@@ -120,9 +120,7 @@ def load_test_cases():
             raise ValueError(f"Test case {index} needs a valid name.")
 
         if not isinstance(test["input"], list):
-            raise ValueError(
-                f"Test case {index} input must be a list."
-            )
+            raise ValueError(f"Test case {index} input must be a list.")
 
         if not isinstance(test["expected"], list):
             raise ValueError(
@@ -133,25 +131,32 @@ def load_test_cases():
 
 
 def evaluate_candidate(name, function, test_cases):
-    """Evaluate a candidate against the same test cases as its peers."""
-
+    """Evaluate correctness and measure candidate execution time."""
     results = []
     passed = 0
+    total_execution_time_ms = 0.0
 
     for test in test_cases:
         expected = copy.deepcopy(test["expected"])
         actual = None
         error = None
 
+        # Prepare isolated input outside the timed candidate execution.
+        test_input = copy.deepcopy(test["input"])
+
+        start_time = time.perf_counter()
+
         try:
-            # Prevent a candidate from modifying the original fixtures.
-            test_input = copy.deepcopy(test["input"])
             actual = function(test_input)
             success = actual == expected
 
         except Exception as exc:
             success = False
             error = f"{type(exc).__name__}: {exc}"
+
+        elapsed_ms = (time.perf_counter() - start_time) * 1000
+        elapsed_ms = round(elapsed_ms, 6)
+        total_execution_time_ms += elapsed_ms
 
         if success:
             passed += 1
@@ -166,6 +171,7 @@ def evaluate_candidate(name, function, test_cases):
         results.append({
             "test": test["name"],
             "status": "PASS" if success else "FAIL",
+            "execution_time_ms": elapsed_ms,
             "expected": expected,
             "actual": actual,
             "failure_reason": failure_reason,
@@ -180,19 +186,22 @@ def evaluate_candidate(name, function, test_cases):
         "failed": failed,
         "total": total,
         "score": round(passed / total * 100, 2) if total else 0,
+        "total_execution_time_ms": round(total_execution_time_ms, 6),
+        "average_execution_time_ms": round(
+            total_execution_time_ms / total, 6
+        ) if total else 0,
         "results": results,
     }
 
 
 def evaluate_candidates(test_cases):
-    """Evaluate and rank every candidate using the same test set."""
-
+    """Evaluate and rank candidates primarily by correctness."""
     reports = [
         evaluate_candidate(name, function, test_cases)
         for name, function in CANDIDATES.items()
     ]
 
-    # Use deterministic tie-breakers.
+    # Correctness determines ranking; timing is reported separately.
     reports.sort(
         key=lambda report: (
             report["score"],
@@ -210,7 +219,6 @@ def evaluate_candidates(test_cases):
 
 def save_comparison(reports):
     """Save the complete candidate comparison report."""
-
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
     with REPORT_FILE.open("w", encoding="utf-8") as file:
@@ -230,8 +238,10 @@ def main():
     for report in reports:
         print(
             f"Rank #{report['rank']}: {report['candidate']} | "
-            f"{report['score']:.2f}% | "
-            f"{report['passed']}/{report['total']} passed"
+            f"Score: {report['score']:.2f}% | "
+            f"Passed: {report['passed']}/{report['total']} | "
+            f"Total time: {report['total_execution_time_ms']:.6f} ms | "
+            f"Average: {report['average_execution_time_ms']:.6f} ms"
         )
 
 
