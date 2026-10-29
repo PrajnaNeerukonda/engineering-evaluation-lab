@@ -496,7 +496,9 @@
     function getMean(candidate) {
         return Number(candidate.average_execution_time_ms ?? NaN);
     }
-
+    function getP95(candidate) {
+    return Number(candidate.p95_execution_time_ms ?? NaN);
+    }
     function getThroughput(candidate) {
         return Number(
             candidate.throughput_input_records_per_second ?? NaN
