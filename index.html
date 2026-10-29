@@ -1,629 +1,837 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Engineering Evaluation Lab</title>
-  <style>
-    :root {
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --text: #172033;
-      --muted: #697386;
-      --border: #e2e8f0;
-      --blue: #315efb;
-      --green: #15803d;
-      --red: #dc2626;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Engineering Evaluation Dashboard</title>
 
-    * { box-sizing: border-box; }
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --primary: #4f46e5;
+            --green: #15803d;
+            --red: #b91c1c;
+            --orange: #c2410c;
+        }
 
-    body {
-      margin: 0;
-      padding: 28px;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    .container { max-width: 1250px; margin: auto; }
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-    h1 { margin: 0 0 8px; font-size: 28px; }
-    h2 { margin-top: 0; font-size: 18px; }
-    h3 { font-size: 15px; }
+        header {
+            margin-bottom: 28px;
+        }
 
-    .subtitle, .muted {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+        }
 
-    .status {
-      background: #dcfce7;
-      color: #166534;
-      padding: 9px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: bold;
-    }
+        header p {
+            margin: 0;
+            color: var(--muted);
+        }
 
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
+        h2 {
+            margin-top: 32px;
+            margin-bottom: 14px;
+            font-size: 21px;
+        }
 
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 22px;
-      box-shadow: 0 2px 5px #17203308;
-      min-width: 0;
-    }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
 
-    .metric-label { color: var(--muted); font-size: 13px; }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            min-width: 0;
+        }
 
-    .metric-value {
-      font-size: 28px;
-      font-weight: bold;
-      margin: 12px 0 6px;
-      overflow-wrap: anywhere;
-    }
+        .metric-label {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
 
-    .section { margin-bottom: 24px; }
-    .table-wrap { overflow-x: auto; }
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
+        .metric-description {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
 
-    th, td {
-      text-align: left;
-      padding: 13px 12px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
+        .table-wrapper {
+            overflow-x: auto;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
 
-    th {
-      color: var(--muted);
-      font-weight: 600;
-      background: #f8fafc;
-      white-space: nowrap;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
 
-    .rank {
-      display: inline-block;
-      background: #e8edff;
-      color: #2448c7;
-      padding: 5px 9px;
-      border-radius: 6px;
-      font-weight: bold;
-    }
+        th,
+        td {
+            padding: 13px 15px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            font-size: 14px;
+        }
 
-    .bar-track {
-      height: 9px;
-      min-width: 90px;
-      background: #e9edf5;
-      border-radius: 20px;
-      overflow: hidden;
-      margin: 7px 0;
-    }
+        th {
+            background: #f9fafb;
+            color: #374151;
+            font-weight: 600;
+        }
 
-    .bar {
-      height: 100%;
-      background: var(--blue);
-      border-radius: 20px;
-    }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
 
-    .time-bar { background: #0891b2; }
+        .status {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
 
-    .badge {
-      display: inline-block;
-      padding: 5px 9px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: bold;
-      white-space: nowrap;
-    }
+        .pass {
+            background: #dcfce7;
+            color: var(--green);
+        }
 
-    .pass { background: #dcfce7; color: var(--green); }
-    .fail { background: #fee2e2; color: var(--red); }
+        .fail {
+            background: #fee2e2;
+            color: var(--red);
+        }
 
-    .summary {
-      margin-top: 18px;
-      padding: 14px;
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      line-height: 1.8;
-      overflow-wrap: anywhere;
-    }
+        .warning {
+            background: #ffedd5;
+            color: var(--orange);
+        }
 
-    .summary p { margin: 4px 0; }
+        .muted {
+            color: var(--muted);
+        }
 
-    .test-list { display: grid; gap: 10px; }
+        .error-panel {
+            padding: 18px;
+            background: #fef2f2;
+            color: var(--red);
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            overflow-wrap: anywhere;
+        }
 
-    .test-item {
-      padding: 13px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-    }
+        .empty-state {
+            padding: 20px;
+            color: var(--muted);
+            text-align: center;
+        }
 
-    .test-details { min-width: 0; overflow-wrap: anywhere; }
-    .test-details strong { font-size: 13px; }
+        footer {
+            margin-top: 36px;
+            padding: 20px 0;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 13px;
+        }
 
-    .failure-reason {
-      display: block;
-      margin-top: 7px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-    }
+        @media (max-width: 600px) {
+            body {
+                padding: 14px;
+            }
 
-    .footer {
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-      padding: 18px;
-    }
+            header h1 {
+                font-size: 24px;
+            }
 
-    @media (max-width: 800px) {
-      body { padding: 16px; }
-      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 480px) {
-      .metrics { grid-template-columns: 1fr; }
-      h1 { font-size: 23px; }
-      .card { padding: 16px; }
-    }
-  </style>
+            .metric-value {
+                font-size: 24px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-<main class="container">
+<div class="container">
 
-  <header>
-    <div>
-      <h1>Engineering Evaluation Lab</h1>
-      <div class="subtitle">
-        Automated candidate benchmarking, performance measurement and failure analysis
-      </div>
+    <header>
+        <h1>AI Engineering Evaluation Dashboard</h1>
+        <p>
+            Automated evaluation of candidate solutions using generated test
+            cases, correctness checks, and performance benchmarks.
+        </p>
+    </header>
+
+    <div id="dashboard-status" class="muted">
+        Loading evaluation reports...
     </div>
-    <div class="status" id="statusBadge">Loading reports...</div>
-  </header>
 
-  <section class="metrics">
-    <article class="card">
-      <div class="metric-label">Candidates evaluated</div>
-      <div class="metric-value" id="candidateCount">—</div>
-      <div class="muted">Implementations compared</div>
-    </article>
+    <div id="dashboard-content" hidden>
 
-    <article class="card">
-      <div class="metric-label">Test cases compared</div>
-      <div class="metric-value" id="testCount">—</div>
-      <div class="muted">Generated benchmark scenarios</div>
-    </article>
+        <h2>Evaluation Overview</h2>
+        <section class="grid" id="overview"></section>
 
-    <article class="card">
-      <div class="metric-label">Highest score</div>
-      <div class="metric-value" id="highestScore">—</div>
-      <div class="muted" id="topCandidate">Awaiting results</div>
-    </article>
+        <h2>Candidate Leaderboard</h2>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Candidate</th>
+                    <th>Passed</th>
+                    <th>Total Tests</th>
+                    <th>Accuracy</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+        </div>
 
-    <article class="card">
-      <div class="metric-label">Top candidate execution time</div>
-      <div class="metric-value" id="topTime">—</div>
-      <div class="muted">Total time across measured test calls</div>
-    </article>
+        <h2>Performance Benchmark</h2>
+        <p class="muted">
+            Performance results are measured separately from correctness
+            tests. Lower execution time is better; throughput is higher when
+            more records are processed per second.
+        </p>
 
-    <article class="card">
-      <div class="metric-label">Average time per test</div>
-      <div class="metric-value" id="averageTime">—</div>
-      <div class="muted">Top-ranked candidate</div>
-    </article>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Candidate</th>
+                    <th>Correct</th>
+                    <th>Median (ms)</th>
+                    <th>P95 (ms)</th>
+                    <th>Mean (ms)</th>
+                    <th>Throughput (records/sec)</th>
+                </tr>
+                </thead>
+                <tbody id="performance-body"></tbody>
+            </table>
+        </div>
 
-    <article class="card">
-      <div class="metric-label">Evaluation status</div>
-      <div class="metric-value" id="evaluationStatus">Loading</div>
-      <div class="muted">Latest published reports</div>
-    </article>
-  </section>
+        <h2>Test Case Summary</h2>
+        <div class="grid" id="test-summary"></div>
 
-  <section class="card section">
-    <h2>Candidate leaderboard</h2>
-    <p class="muted">
-      Candidates are ranked by correctness first. Execution time is reported separately.
-      Timing values are approximate and may vary between runs.
-    </p>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Candidate</th>
-            <th>Passed</th>
-            <th>Failed</th>
-            <th>Pass rate</th>
-            <th>Execution time</th>
-            <th>Average / test</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboard"></tbody>
-      </table>
+        <h2>Candidate Comparison</h2>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Passed</th>
+                    <th>Failed</th>
+                    <th>Accuracy</th>
+                    <th>Total Execution Time (ms)</th>
+                    <th>Average Time (ms)</th>
+                </tr>
+                </thead>
+                <tbody id="comparison-body"></tbody>
+            </table>
+        </div>
+
+        <h2>Failure Analysis</h2>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Test Case</th>
+                    <th>Expected Output</th>
+                    <th>Actual Output</th>
+                </tr>
+                </thead>
+                <tbody id="failures-body"></tbody>
+            </table>
+        </div>
+
+        <h2>Individual Test Results</h2>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Test Case</th>
+                    <th>Candidate</th>
+                    <th>Result</th>
+                    <th>Execution Time (ms)</th>
+                </tr>
+                </thead>
+                <tbody id="results-body"></tbody>
+            </table>
+        </div>
+
     </div>
-  </section>
-<section class="card section">
-  <h2>Repeated Performance Benchmark</h2>
-  <p class="muted">
-    10,000 synthetic input records, 3 warm-up runs and 25 measured runs
-    per candidate. Correctness is evaluated independently of speed.
-  </p>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Candidate</th>
-          <th>Correct</th>
-          <th>Median (ms)</th>
-          <th>P95 (ms)</th>
-          <th>Throughput (records/sec)</th>
-        </tr>
-      </thead>
-      <tbody id="performanceBody">
-        <tr><td colspan="5">Loading benchmark...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-  <section class="card section">
-    <h2>Test-by-test comparison</h2>
-    <p class="muted">
-      Compare each implementation against the expected output for every test case.
-    </p>
-    <div class="table-wrap">
-      <table>
-        <thead id="comparisonHeader"></thead>
-        <tbody id="comparisonBody"></tbody>
-      </table>
-    </div>
-    <div class="summary" id="comparisonSummary"></div>
-  </section>
 
-  <section class="card section">
-    <h2>Failure analysis</h2>
-    <p class="muted">
-      Failed cases reveal where candidate implementations diverge from expected behavior.
-    </p>
-    <div class="test-list" id="failureAnalysis"></div>
-  </section>
+    <footer>
+        AI Engineering Evaluation Lab · Automatically generated evaluation
+        dashboard
+    </footer>
 
-  <section class="card section">
-    <h2>Top candidate: detailed results</h2>
-    <p class="muted" id="testResultsDescription">Loading test results...</p>
-    <div class="test-list" id="testResults"></div>
-  </section>
-
-  <div class="footer">
-    Engineering Evaluation Lab · Python · pytest · JSON · GitHub Actions · GitHub Pages
-  </div>
-
-</main>
+</div>
 
 <script>
-  const DATA_URLS = {
-    candidates: "./data/candidate_comparison.json",
-    testCases: "./data/generated_test_cases.json"
-  };
+    const DATA_URLS = {
+        candidates: "./data/candidate_comparison.json",
+        testCases: "./data/generated_test_cases.json",
+        performance: "./data/performance_benchmark.json"
+    };
 
-  const $ = id => document.getElementById(id);
+    const $ = (id) => document.getElementById(id);
 
-  function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[character]);
-  }
+    function escapeHTML(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
-  function formatTime(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number) || number < 0) return "N/A";
-    return `${number.toFixed(6)} ms`;
-  }
+    function formatNumber(value, decimals = 2) {
+        const number = Number(value);
 
-  function getScore(candidate) {
-    return Math.max(0, Math.min(100, Number(candidate.score) || 0));
-  }
+        if (!Number.isFinite(number)) {
+            return "N/A";
+        }
 
-  function renderLeaderboard(candidates) {
-    $("leaderboard").innerHTML = candidates.map((candidate, index) => {
-      const score = getScore(candidate);
-      const totalTime = candidate.total_execution_time_ms;
-      const averageTime = candidate.average_execution_time_ms;
+        return number.toLocaleString("en-US", {
+            maximumFractionDigits: decimals,
+            minimumFractionDigits: 0
+        });
+    }
 
-      return `
-        <tr>
-          <td><span class="rank">#${index + 1}</span></td>
-          <td><strong>${escapeHTML(candidate.candidate)}</strong></td>
-          <td>${candidate.passed}/${candidate.total}</td>
-          <td>${candidate.failed}</td>
-          <td>
-            <strong>${score.toFixed(2)}%</strong>
-            <div class="bar-track">
-              <div class="bar" style="width:${score}%"></div>
+    function formatTime(value) {
+        return formatNumber(value, 6);
+    }
+
+    function getArray(data, keys = []) {
+        if (Array.isArray(data)) {
+            return data;
+        }
+
+        for (const key of keys) {
+            if (Array.isArray(data?.[key])) {
+                return data[key];
+            }
+        }
+
+        return [];
+    }
+
+    function getCandidateName(candidate) {
+        return (
+            candidate.candidate_name ??
+            candidate.candidate ??
+            candidate.name ??
+            candidate.id ??
+            "Unknown candidate"
+        );
+    }
+
+    function getPassed(candidate) {
+        return Number(
+            candidate.passed ??
+            candidate.passed_tests ??
+            candidate.tests_passed ??
+            0
+        );
+    }
+
+    function getFailed(candidate) {
+        return Number(
+            candidate.failed ??
+            candidate.failed_tests ??
+            candidate.tests_failed ??
+            0
+        );
+    }
+
+    function getTotal(candidate) {
+        return Number(
+            candidate.total_tests ??
+            candidate.total ??
+            (getPassed(candidate) + getFailed(candidate))
+        );
+    }
+
+    function getAccuracy(candidate) {
+        const existing =
+            candidate.accuracy ??
+            candidate.accuracy_percentage ??
+            candidate.pass_rate;
+
+        if (existing !== undefined && existing !== null) {
+            const value = Number(existing);
+
+            // Support either 0–1 ratios or 0–100 percentages.
+            return value <= 1 ? value * 100 : value;
+        }
+
+        const total = getTotal(candidate);
+
+        return total > 0 ? (getPassed(candidate) / total) * 100 : 0;
+    }
+
+    function makeStatus(isPassing) {
+        return isPassing
+            ? '<span class="status pass">PASS</span>'
+            : '<span class="status fail">FAIL</span>';
+    }
+
+    function makeMetric(label, value, description = "") {
+        return `
+            <div class="card">
+                <div class="metric-label">${escapeHTML(label)}</div>
+                <div class="metric-value">${escapeHTML(value)}</div>
+                <div class="metric-description">${escapeHTML(description)}</div>
             </div>
-          </td>
-          <td>
-            <strong>${formatTime(totalTime)}</strong>
-            <div class="bar-track">
-              <div class="bar time-bar" style="width:${
-                Number.isFinite(Number(totalTime)) &&
-                Number(totalTime) >= 0 &&
-                Math.max(...candidates.map(c =>
-                  Number(c.total_execution_time_ms) || 0
-                )) > 0
-                  ? Number(totalTime) /
-                    Math.max(...candidates.map(c =>
-                      Number(c.total_execution_time_ms) || 0
-                    )) * 100
-                  : 0
-              }%"></div>
-            </div>
-          </td>
-          <td>${formatTime(averageTime)}</td>
-        </tr>
-      `;
-    }).join("");
-  }
+        `;
+    }
 
-  function renderComparison(candidates) {
-    const testNames = [
-      ...new Set(candidates.flatMap(candidate =>
-        (candidate.results || []).map(result => result.test)
-      ))
-    ];
+    function renderOverview(candidates, testCases) {
+        const totalTests = testCases.length;
 
-    $("comparisonHeader").innerHTML = `
-      <tr>
-        <th>Test case</th>
-        ${candidates.map(candidate =>
-          `<th>${escapeHTML(candidate.candidate)}</th>`
-        ).join("")}
-      </tr>
-    `;
+        const bestCandidate = [...candidates].sort(
+            (a, b) => getAccuracy(b) - getAccuracy(a)
+        )[0];
 
-    $("comparisonBody").innerHTML = testNames.map(testName => {
-      const cells = candidates.map(candidate => {
-        const result = (candidate.results || []).find(
-          item => item.test === testName
+        const bestName = bestCandidate
+            ? getCandidateName(bestCandidate)
+            : "N/A";
+
+        const bestAccuracy = bestCandidate
+            ? `${formatNumber(getAccuracy(bestCandidate))}%`
+            : "N/A";
+
+        const candidateCount = candidates.length;
+
+        $("overview").innerHTML = [
+            makeMetric(
+                "Candidates Evaluated",
+                candidateCount,
+                "Solutions included in the evaluation"
+            ),
+            makeMetric(
+                "Generated Test Cases",
+                totalTests,
+                "Scenarios used for correctness testing"
+            ),
+            makeMetric(
+                "Top Candidate",
+                bestName,
+                "Highest correctness score"
+            ),
+            makeMetric(
+                "Top Accuracy",
+                bestAccuracy,
+                "Best candidate pass rate"
+            )
+        ].join("");
+    }
+
+    function renderLeaderboard(candidates) {
+        const sorted = [...candidates].sort(
+            (a, b) => getAccuracy(b) - getAccuracy(a)
         );
 
-        if (!result) {
-          return `<td><span class="badge">N/A</span></td>`;
+        $("leaderboard-body").innerHTML = sorted.map((candidate, index) => {
+            const passed = getPassed(candidate);
+            const total = getTotal(candidate);
+            const accuracy = getAccuracy(candidate);
+
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${escapeHTML(getCandidateName(candidate))}</td>
+                    <td>${passed}</td>
+                    <td>${total}</td>
+                    <td>${formatNumber(accuracy)}%</td>
+                    <td>${makeStatus(accuracy >= 100)}</td>
+                </tr>
+            `;
+        }).join("");
+
+        if (!sorted.length) {
+            $("leaderboard-body").innerHTML = `
+                <tr><td colspan="6" class="empty-state">
+                    No candidate results found.
+                </td></tr>
+            `;
+        }
+    }
+
+    function getBenchmarkCandidates(report) {
+        return getArray(report, [
+            "results",
+            "candidates",
+            "benchmarks",
+            "performance_results"
+        ]);
+    }
+
+    function getMedian(candidate) {
+        return Number(
+            candidate.median_execution_time_ms ??
+            candidate.median_ms ??
+            candidate.median ??
+            candidate.median_time_ms ??
+            NaN
+        );
+    }
+
+    function getP95(candidate) {
+        return Number(
+            candidate.p95_execution_time_ms ??
+            candidate.p95_ms ??
+            candidate.p95 ??
+            candidate.p95_time_ms ??
+            NaN
+        );
+    }
+
+    function getMean(candidate) {
+        return Number(
+            candidate.mean_execution_time_ms ??
+            candidate.mean_ms ??
+            candidate.mean ??
+            candidate.average_execution_time_ms ??
+            NaN
+        );
+    }
+
+    function getThroughput(candidate) {
+        return Number(
+            candidate.throughput_records_per_second ??
+            candidate.records_per_second ??
+            candidate.throughput ??
+            NaN
+        );
+    }
+
+    function isCorrect(candidate) {
+        return (
+            candidate.correctness ??
+            candidate.correct ??
+            candidate.is_correct ??
+            candidate.passed_correctness ??
+            false
+        ) === true;
+    }
+
+    function renderPerformance(report) {
+        const candidates = getBenchmarkCandidates(report);
+
+        const sorted = [...candidates].sort((a, b) => {
+            if (isCorrect(a) !== isCorrect(b)) {
+                return isCorrect(a) ? -1 : 1;
+            }
+
+            return getMedian(a) - getMedian(b);
+        });
+
+        $("performance-body").innerHTML = sorted.map(
+            (candidate, index) => {
+                const correct = isCorrect(candidate);
+                const median = getMedian(candidate);
+                const p95 = getP95(candidate);
+                const mean = getMean(candidate);
+                const throughput = getThroughput(candidate);
+
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${escapeHTML(getCandidateName(candidate))}</td>
+                        <td>${makeStatus(correct)}</td>
+                        <td>${formatTime(median)}</td>
+                        <td>${formatTime(p95)}</td>
+                        <td>${formatTime(mean)}</td>
+                        <td>${formatNumber(throughput, 2)}</td>
+                    </tr>
+                `;
+            }
+        ).join("");
+
+        if (!sorted.length) {
+            $("performance-body").innerHTML = `
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        No performance results found. Check the structure
+                        of performance_benchmark.json.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function renderTestSummary(testCases) {
+        const names = testCases.map((testCase) => {
+            if (typeof testCase === "string") {
+                return testCase;
+            }
+
+            return (
+                testCase.name ??
+                testCase.test_name ??
+                testCase.id ??
+                "Unnamed test"
+            );
+        });
+
+        $("test-summary").innerHTML = [
+            makeMetric(
+                "Total Scenarios",
+                names.length,
+                "Generated evaluation scenarios"
+            ),
+            makeMetric(
+                "Unique Scenario Names",
+                new Set(names).size,
+                "Distinct names in the test report"
+            )
+        ].join("");
+    }
+
+    function renderComparison(candidates) {
+        $("comparison-body").innerHTML = candidates.map((candidate) => {
+            const totalTime = Number(
+                candidate.total_execution_time_ms ?? NaN
+            );
+
+            const averageTime = Number(
+                candidate.average_execution_time_ms ?? NaN
+            );
+
+            return `
+                <tr>
+                    <td>${escapeHTML(getCandidateName(candidate))}</td>
+                    <td>${getPassed(candidate)}</td>
+                    <td>${getFailed(candidate)}</td>
+                    <td>${formatNumber(getAccuracy(candidate))}%</td>
+                    <td>${formatTime(totalTime)}</td>
+                    <td>${formatTime(averageTime)}</td>
+                </tr>
+            `;
+        }).join("");
+
+        if (!candidates.length) {
+            $("comparison-body").innerHTML = `
+                <tr><td colspan="6" class="empty-state">
+                    No comparison results found.
+                </td></tr>
+            `;
+        }
+    }
+
+    function renderFailures(candidates, testCases) {
+        const failures = [];
+
+        candidates.forEach((candidate) => {
+            const results = getArray(candidate, [
+                "results",
+                "test_results",
+                "cases"
+            ]);
+
+            results.forEach((result) => {
+                const passed =
+                    result.passed ??
+                    result.success ??
+                    result.is_passed;
+
+                if (passed === false) {
+                    failures.push({
+                        candidate: getCandidateName(candidate),
+                        test: result.test_name ?? result.name ?? result.test_case ?? "Unnamed test",
+                        expected: result.expected ?? result.expected_output ?? "N/A",
+                        actual: result.actual ?? result.actual_output ?? "N/A"
+                    });
+                }
+            });
+        });
+
+        $("failures-body").innerHTML = failures.map((failure) => `
+            <tr>
+                <td>${escapeHTML(failure.candidate)}</td>
+                <td>${escapeHTML(failure.test)}</td>
+                <td>${escapeHTML(JSON.stringify(failure.expected))}</td>
+                <td>${escapeHTML(JSON.stringify(failure.actual))}</td>
+            </tr>
+        `).join("");
+
+        if (!failures.length) {
+            $("failures-body").innerHTML = `
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        No failure details found in the candidate report.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function renderIndividualResults(candidates) {
+        const rows = [];
+
+        candidates.forEach((candidate) => {
+            const results = getArray(candidate, [
+                "results",
+                "test_results",
+                "cases"
+            ]);
+
+            results.forEach((result) => {
+                const passed =
+                    result.passed ??
+                    result.success ??
+                    result.is_passed ??
+                    false;
+
+                const executionTime =
+                    result.execution_time_ms ??
+                    result.elapsed_ms ??
+                    NaN;
+
+                rows.push(`
+                    <tr>
+                        <td>${escapeHTML(
+                            result.test_name ??
+                            result.name ??
+                            result.test_case ??
+                            "Unnamed test"
+                        )}</td>
+                        <td>${escapeHTML(getCandidateName(candidate))}</td>
+                        <td>${makeStatus(passed === true)}</td>
+                        <td>${formatTime(Number(executionTime))}</td>
+                    </tr>
+                `);
+            });
+        });
+
+        $("results-body").innerHTML = rows.join("");
+
+        if (!rows.length) {
+            $("results-body").innerHTML = `
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        No individual test results found in the candidate
+                        comparison report.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    async function fetchJSON(url) {
+        const response = await fetch(url, {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                `Could not load ${url} (HTTP ${response.status}).`
+            );
         }
 
-        const passed = result.status === "PASS";
-        const status = passed ? "PASS" : "FAIL";
-        const reason = result.failure_reason || result.error || "";
+        return response.json();
+    }
 
-        return `
-          <td>
-            <span class="badge ${passed ? "pass" : "fail"}">${status}</span>
-            ${!passed ? `
-              <span class="failure-reason">${escapeHTML(reason)}</span>
-            ` : ""}
-            ${Number.isFinite(Number(result.execution_time_ms)) ? `
-              <span class="failure-reason">
-                Time: ${formatTime(result.execution_time_ms)}
-              </span>
-            ` : ""}
-          </td>
-        `;
-      }).join("");
+    async function initializeDashboard() {
+        const status = $("dashboard-status");
 
-      return `<tr><td><strong>${escapeHTML(testName)}</strong></td>${cells}</tr>`;
-    }).join("");
+        try {
+            // Fetch all three reports using their correct variable names.
+            const [
+                comparison,
+                generatedCases,
+                performance
+            ] = await Promise.all([
+                fetchJSON(DATA_URLS.candidates),
+                fetchJSON(DATA_URLS.testCases),
+                fetchJSON(DATA_URLS.performance)
+            ]);
 
-    const top = candidates[0];
-    const bottom = candidates[candidates.length - 1];
+            const candidates = getArray(comparison, [
+                "candidates",
+                "results",
+                "candidate_results"
+            ]);
 
-    $("comparisonSummary").innerHTML = `
-      <p><strong>Top candidate:</strong>
-        ${escapeHTML(top.candidate)} (${getScore(top).toFixed(2)}%)</p>
-      <p><strong>Lowest-ranked candidate:</strong>
-        ${escapeHTML(bottom.candidate)} (${getScore(bottom).toFixed(2)}%)</p>
-      <p><strong>Tests compared:</strong> ${testNames.length}</p>
-    `;
-  }
+            const testCases = getArray(generatedCases, [
+                "test_cases",
+                "tests",
+                "cases"
+            ]);
 
-  function renderFailures(candidates) {
-    const failures = [];
+            if (!candidates.length) {
+                throw new Error(
+                    "The candidate comparison report contains no candidates, " +
+                    "or its JSON structure is different from the expected format."
+                );
+            }
 
-    candidates.forEach(candidate => {
-      (candidate.results || []).forEach(result => {
-        if (result.status !== "PASS") {
-          failures.push({
-            candidate: candidate.candidate,
-            test: result.test,
-            reason: result.failure_reason || result.error ||
-              "Actual output did not match expected output."
-          });
+            // Render dashboard sections.
+            renderOverview(candidates, testCases);
+            renderLeaderboard(candidates);
+            renderPerformance(performance);
+            renderTestSummary(testCases);
+            renderComparison(candidates);
+            renderFailures(candidates, testCases);
+            renderIndividualResults(candidates);
+
+            status.textContent = "All evaluation reports loaded successfully.";
+            status.className = "status pass";
+            $("dashboard-content").hidden = false;
+
+        } catch (error) {
+            console.error("Dashboard initialization failed:", error);
+
+            status.className = "error-panel";
+            status.textContent =
+                "Unable to load the dashboard: " +
+                error.message +
+                " Check that the JSON reports exist in the data folder " +
+                "and that the workflow copied them into the deployed site.";
         }
-      });
-    });
-
-    if (!failures.length) {
-      $("failureAnalysis").innerHTML = `
-        <div class="test-item">
-          <div class="test-details">
-            <strong>No failures reported</strong>
-            <span class="failure-reason">
-              All candidates passed all recorded tests.
-            </span>
-          </div>
-          <span class="badge pass">PASS</span>
-        </div>
-      `;
-      return;
     }
 
-    $("failureAnalysis").innerHTML = failures.map(failure => `
-      <div class="test-item">
-        <div class="test-details">
-          <strong>${escapeHTML(failure.candidate)} — ${escapeHTML(failure.test)}</strong>
-          <span class="failure-reason">${escapeHTML(failure.reason)}</span>
-        </div>
-        <span class="badge fail">FAIL</span>
-      </div>
-    `).join("");
-  }
-
-  function renderTopResults(candidate) {
-    const results = candidate.results || [];
-
-    $("testResultsDescription").textContent =
-      `Detailed results for ${candidate.candidate}.`;
-
-    if (!results.length) {
-      $("testResults").innerHTML = `
-        <div class="test-item">No individual test results were found.</div>
-      `;
-      return;
-    }
-
-    $("testResults").innerHTML = results.map(result => {
-      const passed = result.status === "PASS";
-
-      return `
-        <div class="test-item">
-          <div class="test-details">
-            <strong>${escapeHTML(result.test)}</strong>
-            <span class="failure-reason">
-              Execution time: ${formatTime(result.execution_time_ms)}
-            </span>
-            ${!passed ? `
-              <span class="failure-reason">
-                ${escapeHTML(result.failure_reason || result.error ||
-                  "Output mismatch")}
-              </span>
-            ` : ""}
-          </div>
-          <span class="badge ${passed ? "pass" : "fail"}">
-            ${passed ? "PASS" : "FAIL"}
-          </span>
-        </div>
-      `;
-    }).join("");
-  }
-
-  async function initializeDashboard() {
-    try {
-      const [comparison, generatedCases] = await Promise.all([
-        fetch(DATA_URLS.candidates, { cache: "no-store" }),
-        fetch(DATA_URLS.testCases, { cache: "no-store" })
-      ]);
-
-      if (!comparison.ok) {
-        throw new Error(`Candidate report returned HTTP ${comparison.status}`);
-      }
-
-      if (!generatedCases.ok) {
-        throw new Error(`Test-case report returned HTTP ${generatedCases.status}`);
-      }
-
-      const candidates = await comparison.json();
-      const testCases = await generatedCases.json();
-
-      if (!Array.isArray(candidates) || candidates.length === 0) {
-        throw new Error("Candidate comparison report is empty or invalid.");
-      }
-
-      if (!Array.isArray(testCases)) {
-        throw new Error("Generated test cases file is invalid.");
-      }
-
-      candidates.sort((a, b) =>
-        getScore(b) - getScore(a) ||
-        (Number(b.passed) || 0) - (Number(a.passed) || 0) ||
-        String(a.candidate).localeCompare(String(b.candidate))
-      );
-
-      const top = candidates[0];
-
-      $("candidateCount").textContent = candidates.length;
-      $("testCount").textContent = new Set([
-        ...testCases.map(test => test.name),
-        ...candidates.flatMap(candidate =>
-          (candidate.results || []).map(result => result.test)
-        )
-      ].filter(Boolean)).size;
-
-      $("highestScore").textContent = `${getScore(top).toFixed(2)}%`;
-      $("topCandidate").textContent = top.candidate;
-      $("evaluationStatus").textContent = "Complete";
-
-      $("topTime").textContent = formatTime(top.total_execution_time_ms);
-      $("averageTime").textContent = formatTime(
-        top.average_execution_time_ms
-      );
-
-      $("statusBadge").textContent = "● Live evaluation data";
-
-      renderLeaderboard(candidates);
-      renderComparison(candidates);
-      renderFailures(candidates);
-      renderTopResults(top);
-
-    } catch (error) {
-      console.error("Dashboard loading failed:", error);
-
-      $("evaluationStatus").textContent = "Unavailable";
-      $("statusBadge").textContent = "● Report unavailable";
-      $("statusBadge").style.background = "#fee2e2";
-      $("statusBadge").style.color = "#991b1b";
-
-      $("leaderboard").innerHTML = `
-        <tr><td colspan="7">
-          Could not load reports. Check that both JSON files exist in the
-          published data directory.
-        </td></tr>
-      `;
-
-      $("comparisonHeader").innerHTML = "";
-      $("comparisonBody").innerHTML = `
-        <tr><td>Candidate comparison could not be loaded.</td></tr>
-      `;
-
-      $("comparisonSummary").textContent = "";
-      $("failureAnalysis").textContent = error.message;
-      $("testResults").textContent = "Evaluation results are unavailable.";
-    }
-  }
-
-  initializeDashboard();
+    initializeDashboard();
 </script>
 </body>
 </html>
-s
