@@ -516,15 +516,11 @@
         );
     }
 
-    function getP95(candidate) {
-        return Number(
-            candidate.p95_execution_time_ms ??
-            candidate.p95_ms ??
-            candidate.p95 ??
-            candidate.p95_time_ms ??
-            NaN
-        );
-    }
+    function getMean(candidate) {
+    return Number(
+        candidate.average_execution_time_ms ?? NaN
+    );
+}
 
     function getMean(candidate) {
         return Number(
@@ -537,14 +533,10 @@
     }
 
     function getThroughput(candidate) {
-        return Number(
-            candidate.throughput_records_per_second ??
-            candidate.records_per_second ??
-            candidate.throughput ??
-            NaN
-        );
-    }
-
+    return Number(
+        candidate.throughput_input_records_per_second ?? NaN
+    );
+}
     function isCorrect(candidate) {
         return (
             candidate.correctness ??
