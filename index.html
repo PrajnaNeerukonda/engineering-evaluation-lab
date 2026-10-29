@@ -201,6 +201,53 @@
         font-size: 23px;
       }
     }
+    
+.comparison-table {
+  min-width: 650px;
+}
+
+.comparison-table th,
+.comparison-table td {
+  vertical-align: top;
+}
+
+.comparison-table td:first-child {
+  min-width: 190px;
+  font-weight: 600;
+}
+
+.comparison-result {
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.comparison-result .badge {
+  display: inline-block;
+}
+
+.comparison-reason {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.comparison-summary {
+  margin-top: 18px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  line-height: 1.8;
+}
+
+.comparison-summary p {
+  margin: 4px 0;
+}
+
   </style>
 </head>
 
@@ -224,9 +271,9 @@
       </article>
 
       <article class="card">
-        <div class="metric-label">Test cases</div>
+        <div class="metric-label">Test cases available</div>
         <div class="metric-value" id="testCount">28</div>
-        <div class="muted">Original and generated cases</div>
+        <div class="muted">Original and generated cases available</div>
       </article>
 
       <article class="card">
@@ -245,7 +292,7 @@
 
     <section class="card section">
       <h2>Candidate leaderboard</h2>
-      <p class="muted">
+      <p class="muted" id="leaderboardDescription">
         Candidates ranked by their test pass rate.
       </p>
 
@@ -267,8 +314,24 @@
     </section>
 
     <section class="card section">
-      <h2>Test-level analysis</h2>
+      <h2>Candidate Comparison</h2>
       <p class="muted">
+        Compare each candidate's result on every benchmark test.
+      </p>
+
+      <div class="table-wrap">
+        <table class="comparison-table">
+          <thead id="comparisonHeader"></thead>
+          <tbody id="comparisonBody"></tbody>
+        </table>
+      </div>
+
+      <div id="comparisonSummary" class="comparison-summary"></div>
+    </section>
+
+    <section class="card section">
+      <h2>Test-level analysis</h2>
+      <p class="muted" id="testResultsDescription">
         Example results from the transaction-cleaning benchmark.
       </p>
       <div id="testResults" class="test-list"></div>
@@ -282,8 +345,8 @@
   <script>
     
 const DATA_URLS = {
-  candidates: "./data/candidate_comparison.json",
-  testCases: "./data/generated_test_cases.json"
+  candidates: "./dashboard/data/candidate_comparison.json",
+  testCases: "./dashboard/data/generated_test_cases.json"
 };
 
 const elements = {
@@ -335,6 +398,106 @@ function renderLeaderboard(candidates) {
       </tr>
     `;
   }).join("");
+}
+
+function renderCandidateComparison(candidates) {
+  const header = document.getElementById("comparisonHeader");
+  const body = document.getElementById("comparisonBody");
+  const summary = document.getElementById("comparisonSummary");
+
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    header.innerHTML = "";
+    body.innerHTML =
+      '<tr><td colspan="2">No candidate results available.</td></tr>';
+    summary.textContent = "";
+    return;
+  }
+
+  // Collect all distinct test names across the candidates.
+  const testNames = [
+    ...new Set(
+      candidates.flatMap(candidate =>
+        (candidate.results || []).map(result => result.test)
+      )
+    )
+  ];
+
+  header.innerHTML = `
+    <tr>
+      <th>Test case</th>
+      ${candidates.map(candidate =>
+        `<th>${escapeHTML(candidate.candidate)}</th>`
+      ).join("")}
+    </tr>
+  `;
+
+  body.innerHTML = testNames.map(testName => {
+    const cells = candidates.map(candidate => {
+      const result = (candidate.results || []).find(
+        item => item.test === testName
+      );
+
+      if (!result) {
+        return `
+          <td>
+            <span class="badge">N/A</span>
+            <span class="comparison-reason">
+              No result recorded for this test.
+            </span>
+          </td>
+        `;
+      }
+
+      const passed = result.status === "PASS";
+      const badgeClass = passed ? "pass" : "fail";
+      const status = passed ? "PASS" : "FAIL";
+
+      const reason = passed
+        ? ""
+        : result.failure_reason ||
+          result.error ||
+          "Actual output did not match expected output.";
+
+      return `
+        <td>
+          <span class="comparison-result badge ${badgeClass}">
+            ${status}
+          </span>
+          ${reason ? `
+            <span class="comparison-reason">
+              ${escapeHTML(reason)}
+            </span>
+          ` : ""}
+        </td>
+      `;
+    }).join("");
+
+    return `
+      <tr>
+        <td>${escapeHTML(testName)}</td>
+        ${cells}
+      </tr>
+    `;
+  }).join("");
+
+  const highest = candidates[0];
+  const lowest = candidates[candidates.length - 1];
+
+  summary.innerHTML = `
+    <p>
+      <strong>Top candidate:</strong>
+      ${escapeHTML(highest.candidate)}
+      (${Number(highest.score || 0).toFixed(1)}%)
+    </p>
+    <p>
+      <strong>Lowest-ranked candidate:</strong>
+      ${escapeHTML(lowest.candidate)}
+      (${Number(lowest.score || 0).toFixed(1)}%)
+    </p>
+    <p>
+      <strong>Tests compared:</strong> ${testNames.length}
+    </p>
+  `;
 }
 
 function renderTestResults(results) {
@@ -411,7 +574,7 @@ async function initializeDashboard() {
 
     renderLeaderboard(candidates);
 
-    // Show the detailed test results of the highest-ranked candidate.
+    renderCandidateComparison(candidates);
     renderTestResults(topCandidate.results || []);
 
     const statusBadge = document.querySelector(".status");
@@ -420,10 +583,10 @@ async function initializeDashboard() {
     document.querySelectorAll(".metrics .card .muted")[3]
       .textContent = "Reports loaded successfully";
 
-    document.querySelector(".section .muted").textContent =
+    document.getElementById("leaderboardDescription").textContent =
       "Candidates ranked by their reported test pass rate.";
 
-    document.querySelectorAll(".section .muted")[1].textContent =
+    document.getElementById("testResultsDescription").textContent =
       `Detailed results for ${topCandidate.candidate}.`;
   } catch (error) {
     console.error("Dashboard loading failed:", error);
@@ -443,6 +606,14 @@ async function initializeDashboard() {
         </td>
       </tr>
     `;
+
+    document.getElementById("comparisonHeader").innerHTML = "";
+    document.getElementById("comparisonBody").innerHTML = `
+      <tr>
+        <td colspan="4">Unable to load candidate comparison results.</td>
+      </tr>
+    `;
+    document.getElementById("comparisonSummary").textContent = "";
 
     elements.testResults.innerHTML = `
       <div class="test-item">
