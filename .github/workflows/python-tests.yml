@@ -54,3 +54,9 @@ jobs:
             reports/summary.json
             reports/generated_test_cases.json
           if-no-files-found: warn
+      - name: Prepare dashboard data
+        if: always()
+        run: |
+          mkdir -p dashboard/data
+          cp reports/candidate_comparison.json dashboard/data/ || true
+          cp reports/generated_test_cases.json dashboard/data/ || true
