@@ -1,3 +1,4 @@
+
 name: Python Tests
 
 on:
@@ -9,11 +10,16 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     steps:
       - name: Get project code
@@ -42,16 +48,6 @@ jobs:
       - name: Generate test cases
         run: python evaluation/test_generator.py
 
-      - name: Prepare dashboard data
-        run: |
-          mkdir -p data
-
-          test -f reports/candidate_comparison.json
-          test -f reports/generated_test_cases.json
-
-          cp reports/candidate_comparison.json data/
-          cp reports/generated_test_cases.json data/
-
       - name: Upload evaluation reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,18 +60,30 @@ jobs:
             reports/generated_test_cases.json
           if-no-files-found: warn
 
-      - name: Publish dashboard data
+      - name: Prepare GitHub Pages site
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p site/data
 
-          git add data/candidate_comparison.json
-          git add data/generated_test_cases.json
+          cp index.html site/index.html
 
-          if ! git diff --cached --quiet; then
-            git commit -m "Update dashboard data [skip ci]"
-            git push
-          else
-            echo "Dashboard data is already up to date."
-          fi
+          cp reports/candidate_comparison.json \
+            site/data/candidate_comparison.json
+
+          cp reports/generated_test_cases.json \
+            site/data/generated_test_cases.json
+
+      - name: Configure GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: deployment
+        uses: actions/deploy-pages@v4
