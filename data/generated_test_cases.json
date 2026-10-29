@@ -1,0 +1,835 @@
+[
+    {
+        "name": "Normal transaction",
+        "input": [
+            {
+                "transaction_id": 1,
+                "amount": 100
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 1,
+                "amount": 100
+            }
+        ]
+    },
+    {
+        "name": "Duplicate transaction IDs",
+        "input": [
+            {
+                "transaction_id": 1,
+                "amount": 100
+            },
+            {
+                "transaction_id": 1,
+                "amount": 100
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 1,
+                "amount": 100
+            }
+        ]
+    },
+    {
+        "name": "Zero transaction amount",
+        "input": [
+            {
+                "transaction_id": 2,
+                "amount": 0
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 2,
+                "amount": 0
+            }
+        ]
+    },
+    {
+        "name": "Missing transaction ID",
+        "input": [
+            {
+                "transaction_id": null,
+                "amount": 100
+            }
+        ],
+        "expected": []
+    },
+    {
+        "name": "Missing transaction amount",
+        "input": [
+            {
+                "transaction_id": 3,
+                "amount": null
+            }
+        ],
+        "expected": []
+    },
+    {
+        "name": "Empty transaction list",
+        "input": [],
+        "expected": []
+    },
+    {
+        "name": "Negative transaction amount",
+        "input": [
+            {
+                "transaction_id": 4,
+                "amount": -50
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 4,
+                "amount": -50
+            }
+        ]
+    },
+    {
+        "name": "Keep first duplicate transaction",
+        "input": [
+            {
+                "transaction_id": 5,
+                "amount": 100
+            },
+            {
+                "transaction_id": 5,
+                "amount": 250
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 5,
+                "amount": 100
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 01",
+        "input": [
+            {
+                "transaction_id": null,
+                "amount": 1
+            }
+        ],
+        "expected": []
+    },
+    {
+        "name": "Random transaction case 02",
+        "input": [
+            {}
+        ],
+        "expected": []
+    },
+    {
+        "name": "Random transaction case 03",
+        "input": [
+            {
+                "transaction_id": null,
+                "amount": 0
+            },
+            {
+                "transaction_id": 6,
+                "amount": 0
+            },
+            {
+                "transaction_id": null,
+                "amount": -1
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 6,
+                "amount": 0
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 04",
+        "input": [
+            {
+                "transaction_id": 3,
+                "amount": 25
+            },
+            {
+                "transaction_id": 5,
+                "amount": 25
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 3,
+                "amount": 25
+            },
+            {
+                "transaction_id": 5,
+                "amount": 25
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 05",
+        "input": [
+            {
+                "amount": 100
+            },
+            {
+                "transaction_id": 5
+            },
+            {
+                "transaction_id": 3,
+                "amount": 1
+            },
+            {
+                "transaction_id": 1,
+                "amount": 100
+            },
+            {
+                "transaction_id": 5,
+                "amount": -1
+            },
+            {
+                "transaction_id": 4,
+                "amount": -100
+            },
+            {
+                "transaction_id": 3,
+                "amount": -1
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 3,
+                "amount": 1
+            },
+            {
+                "transaction_id": 1,
+                "amount": 100
+            },
+            {
+                "transaction_id": 5,
+                "amount": -1
+            },
+            {
+                "transaction_id": 4,
+                "amount": -100
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 06",
+        "input": [
+            {
+                "transaction_id": 3,
+                "amount": 25
+            },
+            {
+                "transaction_id": 3,
+                "amount": null
+            },
+            {
+                "transaction_id": 1,
+                "amount": 0
+            },
+            {
+                "transaction_id": 5,
+                "amount": 0
+            },
+            {
+                "transaction_id": 7,
+                "amount": -1
+            },
+            {
+                "transaction_id": 4,
+                "amount": 100
+            },
+            {
+                "transaction_id": 3
+            },
+            {
+                "transaction_id": null,
+                "amount": -100
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 3,
+                "amount": 25
+            },
+            {
+                "transaction_id": 1,
+                "amount": 0
+            },
+            {
+                "transaction_id": 5,
+                "amount": 0
+            },
+            {
+                "transaction_id": 7,
+                "amount": -1
+            },
+            {
+                "transaction_id": 4,
+                "amount": 100
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 07",
+        "input": [
+            {
+                "transaction_id": 1,
+                "amount": 100
+            },
+            {
+                "transaction_id": 4,
+                "amount": null
+            },
+            {
+                "transaction_id": 4,
+                "amount": 25
+            },
+            {
+                "transaction_id": 7,
+                "amount": null
+            },
+            {
+                "transaction_id": 4,
+                "amount": -1
+            },
+            {
+                "transaction_id": 4,
+                "amount": 0
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 1,
+                "amount": 100
+            },
+            {
+                "transaction_id": 4,
+                "amount": 25
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 08",
+        "input": [
+            {
+                "transaction_id": null,
+                "amount": 25
+            },
+            {
+                "transaction_id": 5,
+                "amount": 1
+            },
+            {
+                "transaction_id": 1,
+                "amount": -100
+            },
+            {
+                "transaction_id": 2,
+                "amount": -1
+            },
+            {
+                "transaction_id": 2,
+                "amount": 1
+            },
+            {
+                "transaction_id": 3,
+                "amount": 0
+            },
+            {
+                "transaction_id": 5,
+                "amount": 500
+            },
+            {}
+        ],
+        "expected": [
+            {
+                "transaction_id": 5,
+                "amount": 1
+            },
+            {
+                "transaction_id": 1,
+                "amount": -100
+            },
+            {
+                "transaction_id": 2,
+                "amount": -1
+            },
+            {
+                "transaction_id": 3,
+                "amount": 0
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 09",
+        "input": [
+            {
+                "amount": 0
+            },
+            {},
+            {
+                "transaction_id": 5,
+                "amount": -100
+            },
+            {
+                "transaction_id": 7,
+                "amount": 0
+            },
+            {
+                "transaction_id": 7,
+                "amount": 0
+            },
+            {
+                "amount": -100
+            },
+            {
+                "transaction_id": 6,
+                "amount": 100
+            },
+            {
+                "transaction_id": 1,
+                "amount": null
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 5,
+                "amount": -100
+            },
+            {
+                "transaction_id": 7,
+                "amount": 0
+            },
+            {
+                "transaction_id": 6,
+                "amount": 100
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 10",
+        "input": [
+            {
+                "transaction_id": 3,
+                "amount": 0
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 3,
+                "amount": 0
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 11",
+        "input": [
+            {
+                "transaction_id": 2,
+                "amount": 1
+            },
+            {
+                "transaction_id": 1,
+                "amount": 500
+            },
+            {
+                "transaction_id": 1,
+                "amount": null
+            },
+            {
+                "transaction_id": null,
+                "amount": -100
+            },
+            {
+                "transaction_id": 2,
+                "amount": 100
+            },
+            {
+                "transaction_id": 6
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 2,
+                "amount": 1
+            },
+            {
+                "transaction_id": 1,
+                "amount": 500
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 12",
+        "input": [
+            {
+                "transaction_id": 4,
+                "amount": 500
+            },
+            {
+                "transaction_id": 7,
+                "amount": -1
+            },
+            {
+                "transaction_id": null
+            },
+            {
+                "amount": -1
+            },
+            {
+                "transaction_id": 2,
+                "amount": -100
+            },
+            {
+                "transaction_id": 3,
+                "amount": 100
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 4,
+                "amount": 500
+            },
+            {
+                "transaction_id": 7,
+                "amount": -1
+            },
+            {
+                "transaction_id": 2,
+                "amount": -100
+            },
+            {
+                "transaction_id": 3,
+                "amount": 100
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 13",
+        "input": [
+            {
+                "transaction_id": null,
+                "amount": -100
+            },
+            {
+                "transaction_id": 5,
+                "amount": 1
+            },
+            {
+                "transaction_id": 3,
+                "amount": 1
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 5,
+                "amount": 1
+            },
+            {
+                "transaction_id": 3,
+                "amount": 1
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 14",
+        "input": [
+            {
+                "transaction_id": 7,
+                "amount": 25
+            },
+            {
+                "transaction_id": null,
+                "amount": 500
+            },
+            {
+                "transaction_id": 1,
+                "amount": -100
+            },
+            {
+                "transaction_id": 2,
+                "amount": 25
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 7,
+                "amount": 25
+            },
+            {
+                "transaction_id": 1,
+                "amount": -100
+            },
+            {
+                "transaction_id": 2,
+                "amount": 25
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 15",
+        "input": [
+            {
+                "transaction_id": 4,
+                "amount": -1
+            },
+            {
+                "transaction_id": 4,
+                "amount": null
+            },
+            {
+                "transaction_id": 1,
+                "amount": -1
+            },
+            {
+                "transaction_id": 2,
+                "amount": 1
+            },
+            {
+                "transaction_id": 5,
+                "amount": 0
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 4,
+                "amount": -1
+            },
+            {
+                "transaction_id": 1,
+                "amount": -1
+            },
+            {
+                "transaction_id": 2,
+                "amount": 1
+            },
+            {
+                "transaction_id": 5,
+                "amount": 0
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 16",
+        "input": [
+            {
+                "transaction_id": 7,
+                "amount": 1
+            },
+            {
+                "transaction_id": 1
+            },
+            {
+                "transaction_id": 5,
+                "amount": -1
+            },
+            {
+                "transaction_id": 7,
+                "amount": 100
+            },
+            {
+                "transaction_id": 2,
+                "amount": null
+            },
+            {
+                "transaction_id": 2,
+                "amount": 100
+            },
+            {
+                "transaction_id": null,
+                "amount": 25
+            },
+            {
+                "transaction_id": 1,
+                "amount": 25
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 7,
+                "amount": 1
+            },
+            {
+                "transaction_id": 5,
+                "amount": -1
+            },
+            {
+                "transaction_id": 2,
+                "amount": 100
+            },
+            {
+                "transaction_id": 1,
+                "amount": 25
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 17",
+        "input": [
+            {
+                "transaction_id": 2,
+                "amount": 0
+            },
+            {
+                "amount": 100
+            },
+            {
+                "transaction_id": 5,
+                "amount": 100
+            },
+            {
+                "transaction_id": 3,
+                "amount": 1
+            },
+            {
+                "transaction_id": 6,
+                "amount": null
+            },
+            {
+                "transaction_id": 7,
+                "amount": 25
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 2,
+                "amount": 0
+            },
+            {
+                "transaction_id": 5,
+                "amount": 100
+            },
+            {
+                "transaction_id": 3,
+                "amount": 1
+            },
+            {
+                "transaction_id": 7,
+                "amount": 25
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 18",
+        "input": [
+            {
+                "transaction_id": 3,
+                "amount": null
+            },
+            {
+                "transaction_id": 4,
+                "amount": -100
+            },
+            {
+                "transaction_id": 6,
+                "amount": 25
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 4,
+                "amount": -100
+            },
+            {
+                "transaction_id": 6,
+                "amount": 25
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 19",
+        "input": [
+            {
+                "amount": 1
+            },
+            {
+                "transaction_id": 5,
+                "amount": 25
+            },
+            {
+                "transaction_id": 1,
+                "amount": 100
+            },
+            {
+                "amount": 100
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 5,
+                "amount": 25
+            },
+            {
+                "transaction_id": 1,
+                "amount": 100
+            }
+        ]
+    },
+    {
+        "name": "Random transaction case 20",
+        "input": [
+            {
+                "transaction_id": 3,
+                "amount": 25
+            },
+            {
+                "transaction_id": 5,
+                "amount": 25
+            },
+            {
+                "transaction_id": 4,
+                "amount": 1
+            },
+            {
+                "transaction_id": 4,
+                "amount": -1
+            },
+            {
+                "transaction_id": 6,
+                "amount": -1
+            },
+            {
+                "transaction_id": null,
+                "amount": 1
+            },
+            {
+                "transaction_id": 5,
+                "amount": 500
+            },
+            {
+                "transaction_id": 7,
+                "amount": -1
+            }
+        ],
+        "expected": [
+            {
+                "transaction_id": 3,
+                "amount": 25
+            },
+            {
+                "transaction_id": 5,
+                "amount": 25
+            },
+            {
+                "transaction_id": 4,
+                "amount": 1
+            },
+            {
+                "transaction_id": 6,
+                "amount": -1
+            },
+            {
+                "transaction_id": 7,
+                "amount": -1
+            }
+        ]
+    }
+]

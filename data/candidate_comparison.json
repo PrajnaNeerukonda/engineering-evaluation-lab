@@ -1,0 +1,227 @@
+[
+    {
+        "candidate": "Candidate A",
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "score": 100.0,
+        "results": [
+            {
+                "test": "Remove duplicate transactions",
+                "status": "PASS",
+                "expected": [
+                    {
+                        "transaction_id": 1,
+                        "amount": 100
+                    }
+                ],
+                "actual": [
+                    {
+                        "transaction_id": 1,
+                        "amount": 100
+                    }
+                ],
+                "failure_reason": null
+            },
+            {
+                "test": "Keep zero amount",
+                "status": "PASS",
+                "expected": [
+                    {
+                        "transaction_id": 2,
+                        "amount": 0
+                    }
+                ],
+                "actual": [
+                    {
+                        "transaction_id": 2,
+                        "amount": 0
+                    }
+                ],
+                "failure_reason": null
+            },
+            {
+                "test": "Remove missing values",
+                "status": "PASS",
+                "expected": [],
+                "actual": [],
+                "failure_reason": null
+            },
+            {
+                "test": "Keep first duplicate",
+                "status": "PASS",
+                "expected": [
+                    {
+                        "transaction_id": 5,
+                        "amount": 100
+                    }
+                ],
+                "actual": [
+                    {
+                        "transaction_id": 5,
+                        "amount": 100
+                    }
+                ],
+                "failure_reason": null
+            },
+            {
+                "test": "Handle empty input",
+                "status": "PASS",
+                "expected": [],
+                "actual": [],
+                "failure_reason": null
+            }
+        ]
+    },
+    {
+        "candidate": "Candidate B",
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "score": 60.0,
+        "results": [
+            {
+                "test": "Remove duplicate transactions",
+                "status": "FAIL",
+                "expected": [
+                    {
+                        "transaction_id": 1,
+                        "amount": 100
+                    }
+                ],
+                "actual": [
+                    {
+                        "transaction_id": 1,
+                        "amount": 100
+                    },
+                    {
+                        "transaction_id": 1,
+                        "amount": 100
+                    }
+                ],
+                "failure_reason": "Expected [{'transaction_id': 1, 'amount': 100}], but got [{'transaction_id': 1, 'amount': 100}, {'transaction_id': 1, 'amount': 100}]"
+            },
+            {
+                "test": "Keep zero amount",
+                "status": "PASS",
+                "expected": [
+                    {
+                        "transaction_id": 2,
+                        "amount": 0
+                    }
+                ],
+                "actual": [
+                    {
+                        "transaction_id": 2,
+                        "amount": 0
+                    }
+                ],
+                "failure_reason": null
+            },
+            {
+                "test": "Remove missing values",
+                "status": "PASS",
+                "expected": [],
+                "actual": [],
+                "failure_reason": null
+            },
+            {
+                "test": "Keep first duplicate",
+                "status": "FAIL",
+                "expected": [
+                    {
+                        "transaction_id": 5,
+                        "amount": 100
+                    }
+                ],
+                "actual": [
+                    {
+                        "transaction_id": 5,
+                        "amount": 100
+                    },
+                    {
+                        "transaction_id": 5,
+                        "amount": 250
+                    }
+                ],
+                "failure_reason": "Expected [{'transaction_id': 5, 'amount': 100}], but got [{'transaction_id': 5, 'amount': 100}, {'transaction_id': 5, 'amount': 250}]"
+            },
+            {
+                "test": "Handle empty input",
+                "status": "PASS",
+                "expected": [],
+                "actual": [],
+                "failure_reason": null
+            }
+        ]
+    },
+    {
+        "candidate": "Candidate C",
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "score": 80.0,
+        "results": [
+            {
+                "test": "Remove duplicate transactions",
+                "status": "PASS",
+                "expected": [
+                    {
+                        "transaction_id": 1,
+                        "amount": 100
+                    }
+                ],
+                "actual": [
+                    {
+                        "transaction_id": 1,
+                        "amount": 100
+                    }
+                ],
+                "failure_reason": null
+            },
+            {
+                "test": "Keep zero amount",
+                "status": "FAIL",
+                "expected": [
+                    {
+                        "transaction_id": 2,
+                        "amount": 0
+                    }
+                ],
+                "actual": [],
+                "failure_reason": "Expected [{'transaction_id': 2, 'amount': 0}], but got []"
+            },
+            {
+                "test": "Remove missing values",
+                "status": "PASS",
+                "expected": [],
+                "actual": [],
+                "failure_reason": null
+            },
+            {
+                "test": "Keep first duplicate",
+                "status": "PASS",
+                "expected": [
+                    {
+                        "transaction_id": 5,
+                        "amount": 100
+                    }
+                ],
+                "actual": [
+                    {
+                        "transaction_id": 5,
+                        "amount": 100
+                    }
+                ],
+                "failure_reason": null
+            },
+            {
+                "test": "Handle empty input",
+                "status": "PASS",
+                "expected": [],
+                "actual": [],
+                "failure_reason": null
+            }
+        ]
+    }
+]
