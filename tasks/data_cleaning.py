@@ -11,11 +11,13 @@ def clean_transactions(transactions):
         if transaction_id is None or amount is None:
             continue
 
-        # Skip transaction IDs we have already processed.
+        # Skip duplicate transaction IDs.
         if transaction_id in seen_ids:
             continue
 
+        # Remember this ID so duplicates can be detected.
         seen_ids.add(transaction_id)
+
         cleaned.append(transaction)
 
     return cleaned
