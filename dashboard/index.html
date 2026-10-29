@@ -280,76 +280,180 @@
   </main>
 
   <script>
-    // Demo data based on our earlier benchmark results.
-    // We will replace this with actual JSON report data next.
+    
+const DATA_URLS = {
+  candidates: "./data/candidate_comparison.json",
+  testCases: "./data/generated_test_cases.json"
+};
 
-    const candidates = [
-      {
-        name: "Candidate A",
-        passed: 5,
-        failed: 0,
-        total: 5,
-        score: 100
-      },
-      {
-        name: "Candidate C",
-        passed: 4,
-        failed: 1,
-        total: 5,
-        score: 80
-      },
-      {
-        name: "Candidate B",
-        passed: 3,
-        failed: 2,
-        total: 5,
-        score: 60
-      }
-    ];
+const elements = {
+  candidateCount: document.getElementById("candidateCount"),
+  testCount: document.getElementById("testCount"),
+  highestScore: document.getElementById("highestScore"),
+  topCandidate: document.getElementById("topCandidate"),
+  evaluationStatus: document.getElementById("evaluationStatus"),
+  leaderboard: document.getElementById("leaderboard"),
+  testResults: document.getElementById("testResults")
+};
 
-    const testResults = [
-      { name: "Normal transaction", status: "PASS" },
-      { name: "Remove duplicate transactions", status: "PASS" },
-      { name: "Keep zero amount", status: "PASS" },
-      { name: "Remove missing values", status: "PASS" },
-      { name: "Keep first duplicate", status: "PASS" },
-      { name: "Handle empty input", status: "PASS" }
-    ];
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
 
-    function renderLeaderboard() {
-      const body = document.getElementById("leaderboard");
+async function loadJSON(url) {
+  const response = await fetch(url, { cache: "no-store" });
 
-      body.innerHTML = candidates.map((candidate, index) => `
-        <tr>
-          <td><span class="rank">#${index + 1}</span></td>
-          <td><strong>${candidate.name}</strong></td>
-          <td>${candidate.passed}/${candidate.total}</td>
-          <td>${candidate.failed}</td>
-          <td><strong>${candidate.score.toFixed(1)}%</strong></td>
-          <td>
-            <div class="bar-track">
-              <div class="bar" style="width:${candidate.score}%"></div>
-            </div>
-          </td>
-        </tr>
-      `).join("");
-    }
+  if (!response.ok) {
+    throw new Error(`Could not load ${url}: HTTP ${response.status}`);
+  }
 
-    function renderTestResults() {
-      const container = document.getElementById("testResults");
+  return response.json();
+}
 
-      container.innerHTML = testResults.map(test => `
-        <div class="test-item">
-          <span>${test.name}</span>
-          <span class="badge ${test.status === "PASS" ? "pass" : "fail"}">
-            ${test.status}
-          </span>
+function renderLeaderboard(candidates) {
+  elements.leaderboard.innerHTML = candidates.map((candidate, index) => {
+    const score = Math.max(0, Math.min(100, Number(candidate.score) || 0));
+
+    return `
+      <tr>
+        <td><span class="rank">#${index + 1}</span></td>
+        <td><strong>${escapeHTML(candidate.candidate)}</strong></td>
+        <td>${candidate.passed}/${candidate.total}</td>
+        <td>${candidate.failed}</td>
+        <td><strong>${score.toFixed(1)}%</strong></td>
+        <td>
+          <div class="bar-track">
+            <div class="bar" style="width:${score}%"></div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function renderTestResults(results) {
+  elements.testResults.innerHTML = results.map(test => {
+    const passed = test.status === "PASS";
+    const status = passed ? "PASS" : "FAIL";
+
+    const failureDetails = passed
+      ? ""
+      : `<div class="muted">${escapeHTML(
+          test.failure_reason ||
+          test.error ||
+          "Actual output did not match expected output."
+        )}</div>`;
+
+    return `
+      <div class="test-item">
+        <div>
+          <strong>${escapeHTML(test.test || test.name)}</strong>
+          ${failureDetails}
         </div>
-      `).join("");
+        <span class="badge ${passed ? "pass" : "fail"}">${status}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+async function initializeDashboard() {
+  try {
+    const [comparison, generatedCases] = await Promise.all([
+      loadJSON(DATA_URLS.candidates),
+      loadJSON(DATA_URLS.testCases)
+    ]);
+
+    if (!Array.isArray(comparison) || comparison.length === 0) {
+      throw new Error("The candidate comparison report is empty.");
     }
 
-    renderLeaderboard();
-    renderTestResults();
+    if (!Array.isArray(generatedCases)) {
+      throw new Error("The generated test cases file is invalid.");
+    }
+
+    const candidates = comparison
+      .map(candidate => ({
+        ...candidate,
+        candidate: candidate.candidate || "Unnamed candidate",
+        passed: Number(candidate.passed) || 0,
+        failed: Number(candidate.failed) || 0,
+        total: Number(candidate.total) || 0,
+        score: Number(candidate.score) || 0
+      }))
+      .sort((a, b) =>
+        b.score - a.score ||
+        b.passed - a.passed ||
+        a.candidate.localeCompare(b.candidate)
+      );
+
+    const topCandidate = candidates[0];
+
+    elements.candidateCount.textContent = candidates.length;
+    elements.testCount.textContent = new Set([
+      ...generatedCases.map(test => test.name),
+      ...candidates.flatMap(candidate =>
+        (candidate.results || []).map(test => test.test)
+      )
+    ].filter(Boolean)).size;
+
+    elements.highestScore.textContent =
+      `${topCandidate.score.toFixed(1)}%`;
+
+    elements.topCandidate.textContent = topCandidate.candidate;
+
+    elements.evaluationStatus.textContent = "Complete";
+
+    renderLeaderboard(candidates);
+
+    // Show the detailed test results of the highest-ranked candidate.
+    renderTestResults(topCandidate.results || []);
+
+    const statusBadge = document.querySelector(".status");
+    statusBadge.textContent = "● Live evaluation data";
+
+    document.querySelectorAll(".metrics .card .muted")[3]
+      .textContent = "Reports loaded successfully";
+
+    document.querySelector(".section .muted").textContent =
+      "Candidates ranked by their reported test pass rate.";
+
+    document.querySelectorAll(".section .muted")[1].textContent =
+      `Detailed results for ${topCandidate.candidate}.`;
+  } catch (error) {
+    console.error("Dashboard loading failed:", error);
+
+    elements.evaluationStatus.textContent = "Unavailable";
+
+    const statusBadge = document.querySelector(".status");
+    statusBadge.textContent = "● Report unavailable";
+    statusBadge.style.background = "#fee2e2";
+    statusBadge.style.color = "#991b1b";
+
+    elements.leaderboard.innerHTML = `
+      <tr>
+        <td colspan="6">
+          Evaluation reports could not be loaded.
+          Check that both JSON files are published in dashboard/data.
+        </td>
+      </tr>
+    `;
+
+    elements.testResults.innerHTML = `
+      <div class="test-item">
+        <span>Unable to load evaluation results.</span>
+        <span class="badge fail">ERROR</span>
+      </div>
+    `;
+  }
+}
+
+initializeDashboard();
   </script>
 </body>
 </html>
