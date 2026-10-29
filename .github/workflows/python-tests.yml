@@ -28,14 +28,17 @@ jobs:
       - name: Install pytest
         run: python -m pip install pytest
 
-      - name: Run tests
+      - name: Run unit tests
         run: python -m pytest -v
 
       - name: Run evaluation engine
         run: python evaluation/evaluate.py
 
-      - name: Run candidate comparison
+      - name: Compare candidates
         run: python benchmarks/compare_candidates.py
+
+      - name: Generate ranking and summary
+        run: python benchmarks/summary.py
 
       - name: Upload evaluation reports
         if: always()
