@@ -1,6 +1,14 @@
 
+import copy
 import json
+import subprocess
+import sys
 from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+REPORTS_DIR = ROOT_DIR / "reports"
+TEST_CASES_FILE = REPORTS_DIR / "generated_test_cases.json"
+REPORT_FILE = REPORTS_DIR / "candidate_comparison.json"
 
 
 # Candidate A: Correct implementation
@@ -12,11 +20,9 @@ def candidate_a(transactions):
         transaction_id = transaction.get("transaction_id")
         amount = transaction.get("amount")
 
-        # Skip missing values, but allow zero amounts.
         if transaction_id is None or amount is None:
             continue
 
-        # Skip duplicate transaction IDs.
         if transaction_id in seen_ids:
             continue
 
@@ -40,7 +46,7 @@ def candidate_b(transactions):
     return cleaned
 
 
-# Candidate C: Bug - removes zero amounts
+# Candidate C: Bug - incorrectly removes zero amounts
 def candidate_c(transactions):
     cleaned = []
     seen_ids = set()
@@ -49,7 +55,6 @@ def candidate_c(transactions):
         transaction_id = transaction.get("transaction_id")
         amount = transaction.get("amount")
 
-        # BUG: Zero is treated as a missing value.
         if transaction_id is None or not amount:
             continue
 
@@ -62,83 +67,101 @@ def candidate_c(transactions):
     return cleaned
 
 
-# Shared test cases for every candidate
-test_cases = [
-    {
-        "name": "Remove duplicate transactions",
-        "input": [
-            {"transaction_id": 1, "amount": 100},
-            {"transaction_id": 1, "amount": 100},
-        ],
-        "expected": [
-            {"transaction_id": 1, "amount": 100},
-        ],
-    },
-    {
-        "name": "Keep zero amount",
-        "input": [
-            {"transaction_id": 2, "amount": 0},
-        ],
-        "expected": [
-            {"transaction_id": 2, "amount": 0},
-        ],
-    },
-    {
-        "name": "Remove missing values",
-        "input": [
-            {"transaction_id": None, "amount": 100},
-        ],
-        "expected": [],
-    },
-    {
-        "name": "Keep first duplicate",
-        "input": [
-            {"transaction_id": 5, "amount": 100},
-            {"transaction_id": 5, "amount": 250},
-        ],
-        "expected": [
-            {"transaction_id": 5, "amount": 100},
-        ],
-    },
-    {
-        "name": "Handle empty input",
-        "input": [],
-        "expected": [],
-    },
-]
+CANDIDATES = {
+    "Candidate A": candidate_a,
+    "Candidate B": candidate_b,
+    "Candidate C": candidate_c,
+}
 
 
-def evaluate_candidate(name, function):
-    passed = 0
+def load_test_cases():
+    """Load the generated test cases, creating them if necessary."""
+
+    if not TEST_CASES_FILE.exists():
+        generator = ROOT_DIR / "evaluation" / "test_generator.py"
+
+        result = subprocess.run(
+            [sys.executable, str(generator)],
+            cwd=ROOT_DIR,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"Test generation failed:\n"
+                f"{result.stdout}\n{result.stderr}"
+            )
+
+    with TEST_CASES_FILE.open("r", encoding="utf-8") as file:
+        test_cases = json.load(file)
+
+    if not isinstance(test_cases, list) or not test_cases:
+        raise ValueError(
+            "Generated test cases must be a non-empty JSON list."
+        )
+
+    required_fields = {"name", "input", "expected"}
+
+    for index, test in enumerate(test_cases, start=1):
+        if not isinstance(test, dict):
+            raise ValueError(f"Test case {index} must be an object.")
+
+        missing = required_fields - test.keys()
+
+        if missing:
+            raise ValueError(
+                f"Test case {index} is missing fields: "
+                f"{sorted(missing)}"
+            )
+
+        if not isinstance(test["name"], str) or not test["name"].strip():
+            raise ValueError(f"Test case {index} needs a valid name.")
+
+        if not isinstance(test["input"], list):
+            raise ValueError(
+                f"Test case {index} input must be a list."
+            )
+
+        if not isinstance(test["expected"], list):
+            raise ValueError(
+                f"Test case {index} expected output must be a list."
+            )
+
+    return test_cases
+
+
+def evaluate_candidate(name, function, test_cases):
+    """Evaluate a candidate against the same test cases as its peers."""
+
     results = []
+    passed = 0
 
     for test in test_cases:
+        expected = copy.deepcopy(test["expected"])
+        actual = None
         error = None
 
         try:
-            actual = function(test["input"])
-            expected = test["expected"]
+            # Prevent a candidate from modifying the original fixtures.
+            test_input = copy.deepcopy(test["input"])
+            actual = function(test_input)
             success = actual == expected
 
         except Exception as exc:
-            actual = None
-            expected = test["expected"]
             success = False
-            error = str(exc)
+            error = f"{type(exc).__name__}: {exc}"
 
         if success:
             passed += 1
             failure_reason = None
-
+        elif error:
+            failure_reason = f"Candidate raised an exception: {error}"
         else:
-            if error:
-                failure_reason = (
-                    f"Candidate raised an exception: {error}"
-                )
-            else:
-                failure_reason = (
-                    f"Expected {expected!r}, but got {actual!r}"
-                )
+            failure_reason = (
+                f"Expected {expected!r}, but got {actual!r}"
+            )
 
         results.append({
             "test": test["name"],
@@ -151,44 +174,66 @@ def evaluate_candidate(name, function):
     total = len(test_cases)
     failed = total - passed
 
-    score = round(passed / total * 100, 2) if total else 0
-
     return {
         "candidate": name,
         "passed": passed,
         "failed": failed,
         "total": total,
-        "score": score,
+        "score": round(passed / total * 100, 2) if total else 0,
         "results": results,
     }
 
 
-if __name__ == "__main__":
-    candidates = {
-        "Candidate A": candidate_a,
-        "Candidate B": candidate_b,
-        "Candidate C": candidate_c,
-    }
+def evaluate_candidates(test_cases):
+    """Evaluate and rank every candidate using the same test set."""
 
-    reports = []
+    reports = [
+        evaluate_candidate(name, function, test_cases)
+        for name, function in CANDIDATES.items()
+    ]
 
-    for name, function in candidates.items():
-        report = evaluate_candidate(name, function)
-        reports.append(report)
+    # Use deterministic tie-breakers.
+    reports.sort(
+        key=lambda report: (
+            report["score"],
+            report["passed"],
+            report["candidate"],
+        ),
+        reverse=True,
+    )
 
-        print(
-            f"{name}: {report['score']}% "
-            f"({report['passed']}/{report['total']} tests passed)"
-        )
+    for rank, report in enumerate(reports, start=1):
+        report["rank"] = rank
 
-    # Create the reports folder if it does not exist.
-    output_dir = Path("reports")
-    output_dir.mkdir(parents=True, exist_ok=True)
+    return reports
 
-    # Save the comparison report.
-    output_file = output_dir / "candidate_comparison.json"
 
-    with output_file.open("w", encoding="utf-8") as file:
+def save_comparison(reports):
+    """Save the complete candidate comparison report."""
+
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    with REPORT_FILE.open("w", encoding="utf-8") as file:
         json.dump(reports, file, indent=4)
 
-    print(f"\nReport saved to: {output_file}")
+    print(f"Report saved to: {REPORT_FILE.relative_to(ROOT_DIR)}")
+
+
+def main():
+    test_cases = load_test_cases()
+    reports = evaluate_candidates(test_cases)
+    save_comparison(reports)
+
+    print("\n=== Candidate Comparison ===")
+    print(f"Test cases used: {len(test_cases)}")
+
+    for report in reports:
+        print(
+            f"Rank #{report['rank']}: {report['candidate']} | "
+            f"{report['score']:.2f}% | "
+            f"{report['passed']}/{report['total']} passed"
+        )
+
+
+if __name__ == "__main__":
+    main()
