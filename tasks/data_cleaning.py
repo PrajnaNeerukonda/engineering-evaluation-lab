@@ -1,12 +1,21 @@
+
 def clean_transactions(transactions):
     cleaned = []
+    seen_ids = set()
 
     for transaction in transactions:
-        # BUG: Treats zero as missing.
-        if not transaction.get("transaction_id") or not transaction.get("amount"):
+        transaction_id = transaction.get("transaction_id")
+        amount = transaction.get("amount")
+
+        # Skip records with missing required values.
+        if transaction_id is None or amount is None:
             continue
 
-        # BUG: Does not remove duplicate IDs.
+        # Skip transaction IDs we have already processed.
+        if transaction_id in seen_ids:
+            continue
+
+        seen_ids.add(transaction_id)
         cleaned.append(transaction)
 
     return cleaned
