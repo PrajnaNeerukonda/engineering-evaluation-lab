@@ -28,22 +28,29 @@ jobs:
       - name: Install pytest
         run: python -m pip install pytest
 
-      - name: Run unit tests
+      - name: Run tests
         run: python -m pytest -v
 
       - name: Run evaluation engine
         run: python evaluation/evaluate.py
 
-      - name: Compare candidates
+      - name: Run candidate comparison
         run: python benchmarks/compare_candidates.py
 
-      - name: Generate ranking and summary
+      - name: Generate candidate ranking and summary
         run: python benchmarks/summary.py
+
+      - name: Generate test cases
+        run: python evaluation/test_generator.py
 
       - name: Upload evaluation reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: evaluation-reports
-          path: reports/
+          path: |
+            reports/scorecard.json
+            reports/candidate_comparison.json
+            reports/summary.json
+            reports/generated_test_cases.json
           if-no-files-found: warn
