@@ -39,6 +39,7 @@ jobs:
           python evaluation/evaluate.py
           python benchmarks/compare_candidates.py
           python benchmarks/summary.py
+          python benchmarks/performance_benchmark.py
 
       - name: Prepare dashboard files
         run: |
