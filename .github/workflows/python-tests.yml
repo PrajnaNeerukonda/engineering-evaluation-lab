@@ -3,9 +3,11 @@ name: Python Tests
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -28,6 +30,6 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -v
-        
+
       - name: Run evaluation engine
-      run: python evaluation/evaluate.py
+        run: python evaluation/evaluate.py
