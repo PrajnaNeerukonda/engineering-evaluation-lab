@@ -28,3 +28,6 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -v
+        
+      - name: Run evaluation engine
+      run: python evaluation/evaluate.py
